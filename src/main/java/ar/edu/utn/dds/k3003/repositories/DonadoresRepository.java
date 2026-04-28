@@ -1,12 +1,12 @@
 package ar.edu.utn.dds.k3003.repositories;
 
 import ar.edu.utn.dds.k3003.model.Donador;
-import java.util.Optional;
+import java.util.*;
 
 public interface DonadoresRepository {
-  Optional<Donador> findById(String id);
-
-  Donador save(Donador donador);
-
-  Donador deleteById(String id);
+    Donador save(Donador donador);
+    Optional<Donador> findById(String id);
+    void clear();
+    List<Donador> findAll();
 }
+

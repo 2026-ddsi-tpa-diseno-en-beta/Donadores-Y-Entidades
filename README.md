@@ -2,13 +2,13 @@
 # 🧪 2026 - Trabajo Práctico Anual
 
 ## 👤 Datos del Alumno
-- **Nombre:**
-- **Apellido:**
+- **Nombre:** Lola
+- **Apellido:** Simone
 
 ---
 
 🧩 Componente Desarrollado
--
+- Donadores y Entidades
 
 ---
 

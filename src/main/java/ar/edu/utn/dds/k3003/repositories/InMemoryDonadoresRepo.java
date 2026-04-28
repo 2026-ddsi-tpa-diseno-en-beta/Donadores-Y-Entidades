@@ -1,39 +1,33 @@
 package ar.edu.utn.dds.k3003.repositories;
 
 import ar.edu.utn.dds.k3003.model.Donador;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
-import lombok.val;
 
 public class InMemoryDonadoresRepo implements DonadoresRepository {
 
-  private List<Donador> donadores;
-  private AtomicLong idSecuencial = new AtomicLong(1);
+  private static Map<String, Donador> donadores = new HashMap<>();
 
-  public InMemoryDonadoresRepo() {
-    this.donadores = new ArrayList<>();
+  @Override
+  public Donador save(Donador donador) {
+    donadores.put(donador.getId(), donador);
+    return donador;
   }
 
   @Override
   public Optional<Donador> findById(String id) {
-    return this.donadores.stream().filter(d -> d.getId().equals(id)).findFirst();
+    return Optional.ofNullable(donadores.get(id));
   }
 
   @Override
-  public Donador save(Donador donador) {
-    Donador donadorConID = donador;
-    donadorConID.setId(String.valueOf(idSecuencial.getAndIncrement()));
-
-    this.donadores.add(donadorConID);
-    return this.findById(donadorConID.getId()).get();
+  public void clear() {
+   donadores.clear();
   }
-
-  @Override
-  public Donador deleteById(String id) {
-    val donador = this.findById(id);
-    this.donadores.remove(donador.get());
-    return donador.get();
+  public List<Donador> findAll() {
+    return new ArrayList<>(donadores.values());
   }
 }
