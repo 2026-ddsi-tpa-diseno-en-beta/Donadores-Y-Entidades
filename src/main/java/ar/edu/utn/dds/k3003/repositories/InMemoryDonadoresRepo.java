@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.stereotype.Repository;
+
+@Repository
 public class InMemoryDonadoresRepo implements DonadoresRepository {
 
   private static Map<String, Donador> donadores = new HashMap<>();

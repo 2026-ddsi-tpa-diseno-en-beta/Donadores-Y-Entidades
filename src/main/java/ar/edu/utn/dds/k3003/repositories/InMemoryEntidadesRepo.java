@@ -2,6 +2,9 @@ package ar.edu.utn.dds.k3003.repositories;
 import ar.edu.utn.dds.k3003.model.EntidadBenefica;
 import java.util.*;
 
+import org.springframework.stereotype.Repository;
+
+@Repository
 public class InMemoryEntidadesRepo implements EntidadesRepository {
 
   private Map<String, EntidadBenefica> mapaDeEntidades = new HashMap<>();

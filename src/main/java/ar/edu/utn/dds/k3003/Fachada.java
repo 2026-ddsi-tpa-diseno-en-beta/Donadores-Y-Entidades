@@ -9,9 +9,20 @@ import ar.edu.utn.dds.k3003.repositories.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+
+@Service
 public class Fachada implements FachadaDonadoresYEntidades {
-  private DonadoresRepository donadoresRepository = new InMemoryDonadoresRepo();
-  private EntidadesRepository entidadesRepository = new InMemoryEntidadesRepo();
+
+  @Autowired
+  private DonadoresRepository donadoresRepository;
+
+  @Autowired
+  private EntidadesRepository entidadesRepository;
+
+
   private DonadoresYEntidadesDataMapper dataMapper = new DonadoresYEntidadesDataMapper();
   private FachadaIncentivos fachadaIncentivos;
   private static long idCounter = 1;
@@ -58,7 +69,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
     
     EntidadBenefica entidadBenefica = dataMapper.toEntidad(entidadDTO);
     if (entidadBenefica.getId() == null) {
-        entidadBenefica.setId("E-" + idCounter++);
+        entidadBenefica.setId(String.valueOf(idCounter++));
     }
     entidadesRepository.save(entidadBenefica);
     return dataMapper.toEntidadDTO(entidadBenefica);
@@ -154,13 +165,24 @@ public class Fachada implements FachadaDonadoresYEntidades {
     return necesidadesInsatisfechas;
   }
 
-  @Override
+@Override
   public NecesidadMaterialDTO satisfacerNecesidad(String necesidadID, Integer cantidadASatisfacer) {
     if (necesidadID == null || cantidadASatisfacer == null || cantidadASatisfacer <= 0) throw new RuntimeException();
+    
     for (EntidadBenefica entidadBenefica : entidadesRepository.findAll()) {
       for (NecesidadMaterial necesidadMaterial : entidadBenefica.getNecesidades()) {
         if (necesidadID.equals(necesidadMaterial.getId())) {
+          
+          if (necesidadMaterial.getTipo() == TipoNecesidadMaterialEnum.RECURRENTE) {
+              if (cantidadASatisfacer < necesidadMaterial.getCantidadObjetivo()) {
+                  throw new RuntimeException("Las necesidades recurrentes no aceptan donaciones parciales.");
+              }
+          }
+
           necesidadMaterial.setCantidadObjetivo(Math.max(0, necesidadMaterial.getCantidadObjetivo() - cantidadASatisfacer));
+          
+          entidadesRepository.save(entidadBenefica);
+          
           return dataMapper.toNecesidadDTO(necesidadMaterial);
         }
       }
