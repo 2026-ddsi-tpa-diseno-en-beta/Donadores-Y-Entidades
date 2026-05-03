@@ -1,8 +1,12 @@
 package ar.edu.utn.dds.k3003.controllers;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EntidadBeneficaDTO;
-import ar.edu.utn.dds.k3003.Fachada; 
+import ar.edu.utn.dds.k3003.Fachada;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,15 +16,18 @@ public class EntidadController {
     @Autowired
     private Fachada fachada;
 
-    // 1. REGISTRAR ENTIDAD (POST /entidades)
     @PostMapping
-    public EntidadBeneficaDTO agregar(@RequestBody EntidadBeneficaDTO entidadDTO) {
-        return fachada.agregarEntidad(entidadDTO);
+    public ResponseEntity<EntidadBeneficaDTO> registrar(@RequestBody EntidadBeneficaDTO dto) {
+        return ResponseEntity.ok(fachada.agregarEntidad(dto));
     }
 
-    // 2. BUSCAR ENTIDAD (GET /entidades/{id})
+    @GetMapping
+    public ResponseEntity<List<EntidadBeneficaDTO>> listar() {
+        return ResponseEntity.ok(fachada.listarEntidades());
+    }
+
     @GetMapping("/{id}")
-    public EntidadBeneficaDTO buscar(@PathVariable String id) {
-        return fachada.buscarEntidadPorID(id); 
+    public ResponseEntity<EntidadBeneficaDTO> buscar(@PathVariable String id) {
+        return ResponseEntity.ok(fachada.buscarEntidadPorID(id));
     }
 }

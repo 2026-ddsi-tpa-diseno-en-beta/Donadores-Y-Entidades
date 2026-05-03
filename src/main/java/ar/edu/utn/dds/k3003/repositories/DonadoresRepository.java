@@ -10,6 +10,9 @@ public interface DonadoresRepository {
     Donador save(Donador donador);
     Optional<Donador> findById(String id);
     void clear();
+    List<Donador> all();
     List<Donador> findAll();
 }
+
+
 

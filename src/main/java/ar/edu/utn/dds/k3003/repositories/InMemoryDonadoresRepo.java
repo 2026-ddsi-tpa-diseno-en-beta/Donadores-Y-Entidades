@@ -30,6 +30,12 @@ public class InMemoryDonadoresRepo implements DonadoresRepository {
   public void clear() {
    donadores.clear();
   }
+  
+  @Override
+  public List<Donador> all() {
+    return new ArrayList<>(donadores.values());
+  }
+
   public List<Donador> findAll() {
     return new ArrayList<>(donadores.values());
   }

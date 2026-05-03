@@ -12,9 +12,7 @@ classDiagram
         -String domicilio
         -String categoria
         -EstadoDonadorEnum estado
-        -List~Queja~ listaDeQuejas
         +puedeHacerDonacion() Boolean
-        +registrarQueja(Queja nuevaQueja) void
     }
 
     class EntidadBenefica {
@@ -23,8 +21,6 @@ classDiagram
         -String domicilio
         -String telefono
         -String correo
-        -List~NecesidadMaterial~ listaDeNecesidades
-        +agregarNecesidad(NecesidadMaterial nuevaNecesidad) void
     }
 
     class Queja {
@@ -41,16 +37,23 @@ classDiagram
         -String productoSolicitadoID
         -String descripcion
         -Integer cantidadObjetivo
-        -Integer nivelDeUrgencia
+        -TipoNecesidadMaterialEnum tipo
     }
 
     class EstadoDonadorEnum {
-        <<enum>>
+        <<enumeration>>
         VERIFICADO
         SOSPECHOSO
         BANEADO
     }
 
-    Donador "1" *-- "0..*" Queja 
-    EntidadBenefica "1" *-- "0..*" NecesidadMaterial 
-    Donador --> EstadoDonadorEnum 
+    class TipoNecesidadMaterialEnum {
+        <<enumeration>>
+        RECURRENTE
+        EXTRAORDINARIA
+    }
+
+    Donador "1" --> "*" Queja 
+    EntidadBenefica "1" --> "*" NecesidadMaterial 
+    Donador --> EstadoDonadorEnum
+    NecesidadMaterial --> TipoNecesidadMaterialEnum

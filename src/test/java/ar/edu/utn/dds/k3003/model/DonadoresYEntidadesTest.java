@@ -171,4 +171,60 @@ public class DonadoresYEntidadesTest {
     Assertions.assertEquals("Esteban", estadisticas.nombre());
     Assertions.assertEquals("ORO", estadisticas.categoria());
   }
+  
+  // --- TESTS LISTAS ---
+
+    @Test
+    @DisplayName("Debería listar múltiples donadores correctamente")
+    void testListarMultiplesDonadores() {
+        // Agregamos 3 donadores
+        fachadaInstancia.agregarDonador(new DonadorDTO(null, "Lola", "S", 20, "l@u.com", "1", "D1", EstadoDonadorEnum.VERIFICADO, "C1"));
+        fachadaInstancia.agregarDonador(new DonadorDTO(null, "Pepe", "P", 30, "p@u.com", "2", "D2", EstadoDonadorEnum.VERIFICADO, "C2"));
+        fachadaInstancia.agregarDonador(new DonadorDTO(null, "Ana", "A", 25, "a@u.com", "3", "D3", EstadoDonadorEnum.VERIFICADO, "C3"));
+
+        List<DonadorDTO> lista = fachadaInstancia.listarDonadores();
+
+        Assertions.assertEquals(3, lista.size(), "La lista debería tener exactamente 3 donadores");
+    }
+
+    @Test
+    @DisplayName("Debería devolver lista vacía si no hay entidades registradas")
+    void testListarEntidadesVacia() {
+        List<EntidadBeneficaDTO> lista = fachadaInstancia.listarEntidades();
+        
+        Assertions.assertNotNull(lista);
+        Assertions.assertTrue(lista.isEmpty(), "La lista debería estar vacía al iniciar");
+    }
+
+    // --- TESTS NECESIDADES ---
+
+    @Test
+    @DisplayName("No debería permitir satisfacer una necesidad con cantidad mayor a la disponible")
+    void testSatisfacerNecesidadExcedida() {
+        fachadaInstancia.agregarEntidad(new EntidadBeneficaDTO(null, "Comedor 1", "Dir", "123", "c@c.com"));
+        NecesidadMaterialDTO n = fachadaInstancia.registrarNecesidad(new NecesidadMaterialDTO(null, "1", 1, "Leche", 10, "PROD-1", TipoNecesidadMaterialEnum.EXTRAORDINARIA));
+
+        fachadaInstancia.satisfacerNecesidad(n.id(), 50);
+
+        List<NecesidadMaterialDTO> resultado = fachadaInstancia.obtenerNecesidadesInsatisfechasDe("PROD-1");
+        Assertions.assertTrue(resultado.isEmpty(), "La necesidad debería considerarse satisfecha (cantidad 0)");
+    }
+
+    @Test
+    @DisplayName("Debería filtrar necesidades de distintos productos")
+    void testFiltradoPorProducto() {
+        fachadaInstancia.agregarEntidad(new EntidadBeneficaDTO(null, "Entidad X", "D", "T", "E"));
+        
+
+        fachadaInstancia.registrarNecesidad(new NecesidadMaterialDTO(null, "1", 1, "Arroz 1", 10, "ARROZ", TipoNecesidadMaterialEnum.EXTRAORDINARIA));
+        fachadaInstancia.registrarNecesidad(new NecesidadMaterialDTO(null, "1", 1, "Arroz 2", 20, "ARROZ", TipoNecesidadMaterialEnum.EXTRAORDINARIA));
+        fachadaInstancia.registrarNecesidad(new NecesidadMaterialDTO(null, "1", 1, "Fideos", 5, "FIDEOS", TipoNecesidadMaterialEnum.EXTRAORDINARIA));
+
+        List<NecesidadMaterialDTO> soloArroz = fachadaInstancia.obtenerNecesidadesInsatisfechasDe("ARROZ");
+
+        Assertions.assertEquals(2, soloArroz.size(), "Debería haber encontrado solo las 2 de Arroz");
+        Assertions.assertTrue(soloArroz.stream().allMatch(n -> n.productoSolicitadoID().equals("ARROZ")));
+    }
+
+
 }

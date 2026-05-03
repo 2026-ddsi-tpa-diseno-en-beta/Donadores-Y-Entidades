@@ -7,25 +7,26 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.*;
 import java.util.*;
+
+
+
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 
 @Service
 public class Fachada implements FachadaDonadoresYEntidades {
 
-  @Autowired
-  private DonadoresRepository donadoresRepository;
-
-  @Autowired
-  private EntidadesRepository entidadesRepository;
+  
+  private  DonadoresRepository donadoresRepository = new InMemoryDonadoresRepo();
+  private  EntidadesRepository entidadesRepository = new InMemoryEntidadesRepo();
 
 
   private DonadoresYEntidadesDataMapper dataMapper = new DonadoresYEntidadesDataMapper();
   private FachadaIncentivos fachadaIncentivos;
-  private static long idCounter = 1;
+  private int idCounter = 1;
 
   public Fachada() {
   }
@@ -175,7 +176,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
           
           if (necesidadMaterial.getTipo() == TipoNecesidadMaterialEnum.RECURRENTE) {
               if (cantidadASatisfacer < necesidadMaterial.getCantidadObjetivo()) {
-                  throw new RuntimeException("Las necesidades recurrentes no aceptan donaciones parciales.");
+                  throw new RuntimeException("No se aceptan donaciones parciales para necesidades recurrentes");
               }
           }
 
@@ -209,4 +210,26 @@ public class Fachada implements FachadaDonadoresYEntidades {
     return new DonadorStatsDTO(donador.getId(), donador.getNombre(), donador.getApellido(), donador.getEdad(), 
                                donador.getEstado(), donador.getCategoria(), misionID, insigniasNombres);
   }
+
+  public List<DonadorDTO> listarDonadores() {
+      List<DonadorDTO> dtos = new ArrayList<>();
+      // Recorremos la lista del repo uno por uno
+      for (Donador d : donadoresRepository.all()) {
+          // Usamos la variable 'mapper' que tenés definida arriba
+          dtos.add(dataMapper.toDonadorDTO(d));
+      }
+      return dtos;
+  }
+
+  public List<EntidadBeneficaDTO> listarEntidades() {
+      List<EntidadBeneficaDTO> dtos = new ArrayList<>();
+      for (EntidadBenefica e : entidadesRepository.all()) {
+          
+          dtos.add(dataMapper.toEntidadDTO(e));
+      }
+      return dtos;
+  }
+
+
+
 }

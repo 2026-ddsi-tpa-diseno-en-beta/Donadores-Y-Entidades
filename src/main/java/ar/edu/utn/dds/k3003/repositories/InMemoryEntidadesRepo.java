@@ -31,5 +31,8 @@ public class InMemoryEntidadesRepo implements EntidadesRepository {
     throw new UnsupportedOperationException("Unimplemented method 'clear'");
   }
 
+  public List<EntidadBenefica> all() {
+    return findAll();
+  }
   
 }
