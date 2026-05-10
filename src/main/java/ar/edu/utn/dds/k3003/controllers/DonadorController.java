@@ -21,9 +21,9 @@ public class DonadorController {
         return ResponseEntity.ok(fachada.agregarDonador(dto));
     }
 
-    @GetMapping // GET /donadores (No modificable - Lista completa)
+    @GetMapping // GET /donadores (No modificable)
     public ResponseEntity<List<DonadorDTO>> listar() {
-        // Acá devolvés todos los donadores que tengas en memoria
+        
         return ResponseEntity.ok(fachada.listarDonadores()); 
     }
 

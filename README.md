@@ -15,6 +15,7 @@
 🧩 Link al despliegue en Render
 - https://entrega-2-lolasimone.onrender.com
 
+- Swagger : https://entrega-2-lolasimone.onrender.com/swagger-ui/index.html#/
 ---
 
 ### ⚠️ Importante

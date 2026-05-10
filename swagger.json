@@ -1,0 +1,260 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "API Donadores y Entidades - 2026 - DDSI - TPA",
+    "description": "Especificación unificada: Base oficial de la cátedra + Implementación de Lola Simone",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "https://entrega-2-lolasimone.onrender.com",
+      "description": "Servidor de Producción (Render)"
+    }
+  ],
+  "paths": {
+    "/donadores": {
+      "post": {
+        "tags": ["Donadores"],
+        "summary": "Agregar un donador",
+        "operationId": "registrar_2",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DonadorDTO" } } },
+          "required": true
+        },
+        "responses": {
+          "200": { "description": "Donador creado correctamente", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/DonadorDTO" } } } }
+        }
+      },
+      "get": {
+        "tags": ["Donadores"],
+        "summary": "Obtener todos los donadores",
+        "operationId": "listar_1",
+        "responses": {
+          "200": { "description": "Lista de donadores", "content": { "*/*": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/DonadorDTO" } } } } }
+        }
+      }
+    },
+    "/donadores/{id}": {
+      "get": {
+        "tags": ["Donadores"],
+        "summary": "Buscar donador por ID",
+        "operationId": "buscar_1",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Donador encontrado", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/DonadorDTO" } } } },
+          "404": { "description": "Donador no encontrado" }
+        }
+      }
+    },
+    "/donadores/{id}/estado": {
+      "patch": {
+        "tags": ["Donadores"],
+        "summary": "Modificar estado del donador",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "type": "object", "properties": { "estado": { "type": "string", "enum": ["VERIFICADO", "SOSPECHOSO", "BANEADO"] } } } } }
+        },
+        "responses": {
+          "200": { "description": "Estado actualizado" },
+          "404": { "description": "Donador no encontrado" }
+        }
+      }
+    },
+    "/donadores/{id}/categoria": {
+      "patch": {
+        "tags": ["Donadores"],
+        "summary": "Modificar categoría del donador",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "type": "object", "properties": { "categoria": { "type": "string" } } } } }
+        },
+        "responses": {
+          "200": { "description": "Categoría actualizada" }
+        }
+      }
+    },
+    "/donadores/{id}/puede-donar": {
+      "get": {
+        "tags": ["Donadores"],
+        "summary": "Verificar si un donador puede donar",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Resultado de validación", "content": { "application/json": { "schema": { "type": "object", "properties": { "puedeDonar": { "type": "boolean" } } } } } }
+        }
+      }
+    },
+    "/donadores/{id}/estadisticas": {
+      "get": {
+        "tags": ["Donadores"],
+        "summary": "Obtener estadísticas del donador",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Estadísticas del donador" }
+        }
+      }
+    },
+    "/donadores/{id}/quejas": {
+      "post": {
+        "tags": ["Donadores"],
+        "summary": "Agregar una queja a un donador",
+        "operationId": "registrarQueja",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/QuejaDTO" } } },
+          "required": true
+        },
+        "responses": {
+          "200": { "description": "Queja creada correctamente", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/QuejaDTO" } } } }
+        }
+      },
+      "get": {
+        "tags": ["Donadores"],
+        "summary": "Obtener quejas de un donador",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Lista de quejas" }
+        }
+      }
+    },
+    "/entidades": {
+      "post": {
+        "tags": ["Entidades"],
+        "summary": "Agregar entidad benéfica",
+        "operationId": "registrar_1",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EntidadBeneficaDTO" } } },
+          "required": true
+        },
+        "responses": {
+          "200": { "description": "Entidad creada", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/EntidadBeneficaDTO" } } } }
+        }
+      },
+      "get": {
+        "tags": ["Entidades"],
+        "summary": "Obtener todas las entidades",
+        "operationId": "listar",
+        "responses": {
+          "200": { "description": "Lista de entidades", "content": { "*/*": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/EntidadBeneficaDTO" } } } } }
+        }
+      }
+    },
+    "/entidades/{id}": {
+      "get": {
+        "tags": ["Entidades"],
+        "summary": "Buscar entidad por ID",
+        "operationId": "buscar",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Entidad encontrada", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/EntidadBeneficaDTO" } } } }
+        }
+      }
+    },
+    "/necesidades": {
+      "post": {
+        "tags": ["Necesidades"],
+        "summary": "Registrar necesidad material",
+        "operationId": "registrar",
+        "requestBody": {
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NecesidadMaterialDTO" } } },
+          "required": true
+        },
+        "responses": {
+          "200": { "description": "Necesidad creada", "content": { "*/*": { "schema": { "$ref": "#/components/schemas/NecesidadMaterialDTO" } } } }
+        }
+      },
+      "get": {
+        "tags": ["Necesidades"],
+        "summary": "Obtener necesidades por producto",
+        "operationId": "listarPorProducto",
+        "parameters": [
+          { "name": "productoSolicitadoID", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Lista de necesidades", "content": { "*/*": { "schema": { "type": "array", "items": { "$ref": "#/components/schemas/NecesidadMaterialDTO" } } } } }
+        }
+      }
+    },
+    "/necesidades/{necesidadID}/satisfaccion": {
+      "post": {
+        "tags": ["Necesidades"],
+        "summary": "Satisfacer una necesidad",
+        "operationId": "satisfacer",
+        "parameters": [
+          { "name": "necesidadID", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "cantidadASatisfacer", "in": "query", "required": true, "schema": { "type": "integer", "format": "int32" } }
+        ],
+        "responses": {
+          "200": { "description": "Necesidad actualizada", "content": { "*/*": { "schema": { "type": "string" } } } }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DonadorDTO": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "nombre": { "type": "string" },
+          "apellido": { "type": "string" },
+          "edad": { "type": "integer", "format": "int32" },
+          "email": { "type": "string" },
+          "nroDocumento": { "type": "string" },
+          "domicilio": { "type": "string" },
+          "estado": { "type": "string", "enum": ["VERIFICADO", "SOSPECHOSO", "BANEADO"] },
+          "categoria": { "type": "string" }
+        }
+      },
+      "EntidadBeneficaDTO": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "razonSocial": { "type": "string" },
+          "domicilio": { "type": "string" },
+          "telefono": { "type": "string" },
+          "correo": { "type": "string" }
+        }
+      },
+      "NecesidadMaterialDTO": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "entidadID": { "type": "string" },
+          "nivelDeUrgencia": { "type": "integer", "format": "int32" },
+          "descripcion": { "type": "string" },
+          "cantidadObjetivo": { "type": "integer", "format": "int32" },
+          "productoSolicitadoID": { "type": "string" },
+          "tipo": { "type": "string", "enum": ["EXTRAORDINARIA", "RECURRENTE"] }
+        }
+      },
+      "QuejaDTO": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "donacionID": { "type": "string" },
+          "donadorID": { "type": "string" },
+          "fecha": { "type": "string", "format": "date" },
+          "descripcion": { "type": "string" }
+        }
+      }
+    }
+  }
+}
