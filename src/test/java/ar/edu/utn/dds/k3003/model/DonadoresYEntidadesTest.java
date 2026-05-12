@@ -226,5 +226,20 @@ public class DonadoresYEntidadesTest {
         Assertions.assertTrue(soloArroz.stream().allMatch(n -> n.productoSolicitadoID().equals("ARROZ")));
     }
 
+    @Test
+    @DisplayName("Debería devolver una lista con todas las quejas de todos los donadores")
+    void testListarTodasLasQuejasGlobales() {
+
+        DonadorDTO d1 = fachadaInstancia.agregarDonador(new DonadorDTO(null, "Lola", "S", 21, "l@u.com", "1", "D1", EstadoDonadorEnum.VERIFICADO, "C1"));
+        DonadorDTO d2 = fachadaInstancia.agregarDonador(new DonadorDTO(null, "Pepe", "P", 30, "p@u.com", "2", "D2", EstadoDonadorEnum.VERIFICADO, "C2"));
+
+        fachadaInstancia.agregarQueja(new QuejaDTO(null, "V-1", d1.id(), LocalDate.now(), "Queja de Lola"));
+        fachadaInstancia.agregarQueja(new QuejaDTO(null, "V-2", d2.id(), LocalDate.now(), "Queja de Pepe"));
+
+        List<QuejaDTO> todas = fachadaInstancia.obtenerTodasLasQuejas();
+
+        Assertions.assertEquals(2, todas.size(), "Debería haber juntado las quejas de ambos donadores");
+    }
+
 
 }
