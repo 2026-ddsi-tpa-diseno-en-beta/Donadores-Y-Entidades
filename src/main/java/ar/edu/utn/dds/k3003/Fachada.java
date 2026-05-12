@@ -131,7 +131,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
             .flatMap(donador -> donador.getListaDeQuejas().stream())
             .map(dataMapper::toQuejaDTO)
             .collect(Collectors.toList());
-}
+  }
 
   @Override
   public Boolean puedeDonar(String donadorID) {
