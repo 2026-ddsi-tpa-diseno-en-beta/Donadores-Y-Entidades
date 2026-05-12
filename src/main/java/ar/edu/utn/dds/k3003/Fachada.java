@@ -123,6 +123,16 @@ public class Fachada implements FachadaDonadoresYEntidades {
     return donador.getListaDeQuejas().stream().map(dataMapper::toQuejaDTO).collect(Collectors.toList());
   }
 
+  public List<QuejaDTO> obtenerTodasLasQuejas() {
+
+    List<Donador> todosLosDonadores = donadoresRepository.findAll();
+    
+    return todosLosDonadores.stream()
+            .flatMap(donador -> donador.getListaDeQuejas().stream())
+            .map(dataMapper::toQuejaDTO)
+            .collect(Collectors.toList());
+}
+
   @Override
   public Boolean puedeDonar(String donadorID) {
     if (donadorID == null) {

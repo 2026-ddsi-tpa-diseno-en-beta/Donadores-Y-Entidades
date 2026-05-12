@@ -75,4 +75,9 @@ public class DonadorController {
     public ResponseEntity<Object> obtenerStats(@PathVariable String id) {
         return ResponseEntity.ok(fachada.estadisticasDonador(id));
     }
+
+    @GetMapping("/quejas/todas")
+    public ResponseEntity<List<QuejaDTO>> listarTodasLasQuejas() {
+        return ResponseEntity.ok(fachada.obtenerTodasLasQuejas());
+    }
 }
