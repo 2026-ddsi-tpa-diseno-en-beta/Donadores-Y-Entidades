@@ -55,6 +55,13 @@
       <scope>runtime</scope>
     </dependency>
 
+  <!-- Datadog -->
+    <dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-datadog</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
     <!-- Existing Dependencies -->
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
