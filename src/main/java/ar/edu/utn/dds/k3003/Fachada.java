@@ -8,11 +8,9 @@ import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.*;
 import java.util.*;
 
-
-
 import java.util.stream.Collectors;
 
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
@@ -20,13 +18,19 @@ import org.springframework.stereotype.Service;
 public class Fachada implements FachadaDonadoresYEntidades {
 
   
-  private  DonadoresRepository donadoresRepository = new InMemoryDonadoresRepo();
-  private  EntidadesRepository entidadesRepository = new InMemoryEntidadesRepo();
 
-
+  private DonadoresRepository donadoresRepository;
+  private EntidadesRepository entidadesRepository;
+  
   private DonadoresYEntidadesDataMapper dataMapper = new DonadoresYEntidadesDataMapper();
   private FachadaIncentivos fachadaIncentivos;
   private int idCounter = 1;
+
+  @Autowired
+  public Fachada(DonadoresRepository donadoresRepository, EntidadesRepository entidadesRepository) {
+      this.donadoresRepository = donadoresRepository;
+      this.entidadesRepository = entidadesRepository;
+  }
 
   public Fachada() {
   }
@@ -223,9 +227,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
 
   public List<DonadorDTO> listarDonadores() {
       List<DonadorDTO> dtos = new ArrayList<>();
-      // Recorremos la lista del repo uno por uno
-      for (Donador d : donadoresRepository.all()) {
-          // Usamos la variable 'mapper' que tenés definida arriba
+      
+      for (Donador d : donadoresRepository.findAll()) {
+          
           dtos.add(dataMapper.toDonadorDTO(d));
       }
       return dtos;
@@ -233,7 +237,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
 
   public List<EntidadBeneficaDTO> listarEntidades() {
       List<EntidadBeneficaDTO> dtos = new ArrayList<>();
-      for (EntidadBenefica e : entidadesRepository.all()) {
+      for (EntidadBenefica e : entidadesRepository.findAll()) {
           
           dtos.add(dataMapper.toEntidadDTO(e));
       }

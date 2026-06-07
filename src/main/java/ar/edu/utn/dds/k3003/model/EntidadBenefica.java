@@ -3,12 +3,30 @@ package ar.edu.utn.dds.k3003.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+
 public class EntidadBenefica {
+    @Id
     private String entidadID;
+
+    @Column
     private String razonSocial;
+
+    @Column
     private String domicilio;
+
+    @Column
     private String telefono;
+
+    @Column
     private String correo;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "entidad_id")
     private List<NecesidadMaterial> necesidades = new ArrayList<>();
 
 
