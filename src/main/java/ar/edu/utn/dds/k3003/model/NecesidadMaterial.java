@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003.model;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.TipoNecesidadMaterialEnum;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
@@ -10,6 +11,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
+@Entity
 public class NecesidadMaterial {
   @Id
   private String id;
