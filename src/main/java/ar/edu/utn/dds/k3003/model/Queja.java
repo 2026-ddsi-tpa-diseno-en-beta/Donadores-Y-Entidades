@@ -11,6 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
+@Entity
 public class Queja {
   @Id
   private String id;
