@@ -11,8 +11,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Service;
 
+
+@SpringBootApplication(scanBasePackages = "ar.edu.utn.dds.k3003") 
+@EnableJpaRepositories(basePackages = "ar.edu.utn.dds.k3003.repositories") 
+@EntityScan(basePackages = "ar.edu.utn.dds.k3003.model")
 
 @Service
 public class Fachada implements FachadaDonadoresYEntidades {
