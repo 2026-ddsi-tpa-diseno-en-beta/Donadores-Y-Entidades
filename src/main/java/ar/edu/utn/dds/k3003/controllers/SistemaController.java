@@ -30,7 +30,7 @@ public class SistemaController {
         donadorRepository.deleteAll();
         entidadesRepository.deleteAll();
         
-        return ResponseEntity.ok("¡Base de datos limpia y reluciente! ✨");
+        return ResponseEntity.ok("Base de datos limpia");
     }
 
     @GetMapping("/donadores")
