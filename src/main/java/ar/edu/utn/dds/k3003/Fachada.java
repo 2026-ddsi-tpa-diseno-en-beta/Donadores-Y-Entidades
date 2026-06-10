@@ -41,6 +41,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
       this.entidadesRepository = entidadesRepository;
   }
 
+  public Fachada() {
+  }
+
   @Override
   public void setFachadaIncentivos(FachadaIncentivos fachadaIncentivos) {
     this.fachadaIncentivos = fachadaIncentivos;
