@@ -7,6 +7,8 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.*;
 import java.util.*;
+import ar.edu.utn.dds.k3003.repositories.memory.*;
+
 
 import java.util.stream.Collectors;
 
@@ -25,7 +27,7 @@ import org.springframework.stereotype.Service;
 public class Fachada implements FachadaDonadoresYEntidades {
 
   
-
+  @Autowired
   private DonadoresRepository donadoresRepository;
   private EntidadesRepository entidadesRepository;
   
@@ -33,13 +35,10 @@ public class Fachada implements FachadaDonadoresYEntidades {
   private FachadaIncentivos fachadaIncentivos;
   private int idCounter = 1;
 
-  @Autowired
+  @Autowired (required = false)
   public Fachada(DonadoresRepository donadoresRepository, EntidadesRepository entidadesRepository) {
       this.donadoresRepository = donadoresRepository;
       this.entidadesRepository = entidadesRepository;
-  }
-
-  public Fachada() {
   }
 
   @Override
