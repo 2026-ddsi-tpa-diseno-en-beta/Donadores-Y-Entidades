@@ -4,6 +4,7 @@ import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.*;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.*;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
+import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.*;
 import java.util.*;
@@ -12,6 +13,8 @@ import java.util.*;
 
 import java.util.stream.Collectors;
 
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -50,7 +53,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
   }
 
   @Override
-  public DonadorDTO agregarDonador(DonadorDTO donadorDTO) {
+  public DonadorDTO agregarDonador(@Valid @RequestBody DonadorDTO donadorDTO) {
     if (donadorDTO == null) throw new RuntimeException();
     
     if (donadorDTO.id() != null && donadoresRepository.findById(donadorDTO.id()).isPresent()) {
@@ -117,12 +120,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
   public QuejaDTO agregarQueja(QuejaDTO quejaDTO) {
     if (quejaDTO == null || quejaDTO.id() != null) throw new RuntimeException();
     
-    Donador donador = donadoresRepository.findById(quejaDTO.donadorID()).orElseGet(() -> {
-        Donador nuevoDonador = new Donador("Temp", "Temp", 0, "temp@email.com", quejaDTO.donadorID(), "Direccion");
-        nuevoDonador.setId(quejaDTO.donadorID());
-        return donadoresRepository.save(nuevoDonador);
-    });
-    
+    Donador donador = donadoresRepository.findById(quejaDTO.donadorID())
+            .orElseThrow(() -> new DonadorNoEncontradoException("Donador no encontrado"));
+
     Queja queja = new Queja(String.valueOf(idCounter++), quejaDTO.donadorID(), quejaDTO.donacionID(), quejaDTO.descripcion(), quejaDTO.fecha());
     donador.registrarQueja(queja);
     donadoresRepository.save(donador);
