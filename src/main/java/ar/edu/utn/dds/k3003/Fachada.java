@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
+import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -44,6 +45,8 @@ public class Fachada implements FachadaDonadoresYEntidades {
       this.entidadesRepository = entidadesRepository;
   }
 
+  @Autowired
+  private DonadorMetricas metrics;
   public Fachada() {
   }
 
@@ -55,17 +58,14 @@ public class Fachada implements FachadaDonadoresYEntidades {
   @Override
   public DonadorDTO agregarDonador(@Valid @RequestBody DonadorDTO donadorDTO) {
     if (donadorDTO == null) throw new RuntimeException();
-    
+
     if (donadorDTO.id() != null && donadoresRepository.findById(donadorDTO.id()).isPresent()) {
-        throw new RuntimeException();
+        throw new NoSuchElementException("Error: Ya existe un donador con el ID: " + donadorDTO.id());
     }
-    
+
     Donador donadorModel = dataMapper.toDonador(donadorDTO);
-    if (donadorModel.getId() == null) {
-        donadorModel.setId(String.valueOf(idCounter++));
-    }
-    
     donadoresRepository.save(donadorModel);
+    metrics.donadorRegistrado();
     return dataMapper.toDonadorDTO(donadorModel);
   }
 
@@ -73,7 +73,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
   public DonadorDTO buscarDonadorPorID(String donadorID) {
     return donadoresRepository.findById(donadorID)
         .map(dataMapper::toDonadorDTO)
-        .orElseThrow(() -> new NoSuchElementException("Donador no encontrado: " + donadorID));
+        .orElseThrow(() -> new NoSuchElementException("Donador no encontrado con id: " + donadorID));
   }
 
   @Override
@@ -83,13 +83,10 @@ public class Fachada implements FachadaDonadoresYEntidades {
     if (entidadDTO.id() != null && entidadesRepository.findById(entidadDTO.id()).isPresent()) {
         throw new RuntimeException();
     }
-    
-    EntidadBenefica entidadBenefica = dataMapper.toEntidad(entidadDTO);
-    if (entidadBenefica.getId() == null) {
-        entidadBenefica.setId(String.valueOf(idCounter++));
-    }
-    entidadesRepository.save(entidadBenefica);
-    return dataMapper.toEntidadDTO(entidadBenefica);
+
+    EntidadBenefica entidad = dataMapper.toEntidad(entidadDTO);
+    entidadesRepository.save(entidad);
+    return dataMapper.toEntidadDTO(entidad);
   }
 
   @Override
@@ -123,10 +120,19 @@ public class Fachada implements FachadaDonadoresYEntidades {
     Donador donador = donadoresRepository.findById(quejaDTO.donadorID())
             .orElseThrow(() -> new DonadorNoEncontradoException("Donador no encontrado"));
 
-    Queja queja = new Queja(String.valueOf(idCounter++), quejaDTO.donadorID(), quejaDTO.donacionID(), quejaDTO.descripcion(), quejaDTO.fecha());
+    Queja queja = new Queja(
+            String.valueOf(idCounter++),
+            quejaDTO.donadorID(),
+            quejaDTO.donacionID(),
+            quejaDTO.descripcion(),
+            quejaDTO.fecha()
+    );
     donador.registrarQueja(queja);
     donadoresRepository.save(donador);
+    metrics.quejaRegistrada();
+
     return dataMapper.toQuejaDTO(queja);
+
   }
 
   @Override
@@ -165,6 +171,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
     if (donadorID == null || nuevoEstado == null) throw new RuntimeException();
     Donador donador = donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
     donador.setEstado(nuevoEstado);
+    if (nuevoEstado == EstadoDonadorEnum.BANEADO) {
+      metrics.donadorBaneado();
+    }
     return dataMapper.toDonadorDTO(donadoresRepository.save(donador));
   }
 

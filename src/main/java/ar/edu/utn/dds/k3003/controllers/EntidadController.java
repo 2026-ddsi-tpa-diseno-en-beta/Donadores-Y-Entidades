@@ -5,22 +5,30 @@ import ar.edu.utn.dds.k3003.Fachada;
 
 import java.util.List;
 
+import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@NoArgsConstructor
+
 @RequestMapping("/entidades") 
 @RestController
 public class EntidadController {
 
-    @Autowired
-    private Fachada fachada;
+    private final Fachada fachada;
+    private final DonadorMetricas metrics;
+
+    public EntidadController(Fachada fachada, DonadorMetricas metrics) {
+        this.fachada = fachada;
+        this.metrics = metrics;
+    }
 
     @PostMapping
     public ResponseEntity<EntidadBeneficaDTO> registrar(@RequestBody EntidadBeneficaDTO dto) {
-        return ResponseEntity.ok(fachada.agregarEntidad(dto));
+        EntidadBeneficaDTO nueva = fachada.agregarEntidad(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nueva);
     }
 
     @GetMapping

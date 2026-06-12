@@ -2,23 +2,29 @@ package ar.edu.utn.dds.k3003.controllers;
 
 import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.NecesidadMaterialDTO;
+import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@NoArgsConstructor
+
 @RequestMapping("/necesidades")
 @RestController
 public class NecesidadController {
 
-    @Autowired
-    private Fachada fachada;
+    private final Fachada fachada;
+    private final DonadorMetricas metrics;
 
+    public NecesidadController(Fachada fachada, DonadorMetricas metrics) {
+        this.fachada = fachada;
+        this.metrics = metrics;
+    }
     @PostMapping
     public ResponseEntity<NecesidadMaterialDTO> registrar(@RequestBody NecesidadMaterialDTO dto) {
-        return ResponseEntity.ok(fachada.registrarNecesidad(dto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(fachada.registrarNecesidad(dto));
     }
 
     @GetMapping
@@ -28,11 +34,7 @@ public class NecesidadController {
 
     @PostMapping("/{necesidadID}/satisfaccion")
     public ResponseEntity<String> satisfacer(@PathVariable String necesidadID, @RequestParam Integer cantidadASatisfacer) {
-        try {
-            fachada.satisfacerNecesidad(necesidadID, cantidadASatisfacer);
-            return ResponseEntity.ok("Satisfecha!");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        fachada.satisfacerNecesidad(necesidadID, cantidadASatisfacer);
+        return ResponseEntity.ok("necesidad Satisfecha!");
     }
 }

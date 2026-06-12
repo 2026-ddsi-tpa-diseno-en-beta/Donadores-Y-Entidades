@@ -1,6 +1,7 @@
 package ar.edu.utn.dds.k3003.controllers;
 
 import ar.edu.utn.dds.k3003.Fachada;
+import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
 import ar.edu.utn.dds.k3003.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +11,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/sistema")
 public class SistemaController {
 
-    @Autowired
-    private Fachada fachada;
+    private final Fachada fachada;
+    private final DonadorMetricas metrics;
+
+    public SistemaController(Fachada fachada, DonadorMetricas metrics) {
+        this.fachada = fachada;
+        this.metrics = metrics;
+    }
 
     @Autowired
     private DonadoresRepository donadorRepository;

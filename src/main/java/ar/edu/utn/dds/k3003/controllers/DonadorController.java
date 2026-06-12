@@ -4,8 +4,10 @@ import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.DonadorDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EstadoDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.QuejaDTO;
+import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -15,12 +17,19 @@ import java.util.Map;
 @RequestMapping("/donadores")
 public class DonadorController {
 
-    @Autowired
-    private Fachada fachada;
+    private final Fachada fachada;
+    private final DonadorMetricas metrics;
+
+    public DonadorController(Fachada fachada, DonadorMetricas metrics) {
+        this.fachada = fachada;
+        this.metrics = metrics;
+    }
 
     @PostMapping // POST /donadores (No modificable)
     public ResponseEntity<DonadorDTO> registrar(@RequestBody DonadorDTO dto) {
-        return ResponseEntity.ok(fachada.agregarDonador(dto));
+        DonadorDTO nuevoDonador = fachada.agregarDonador(dto);
+        metrics.donadorRegistrado();
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoDonador);
     }
 
     @GetMapping // GET /donadores (No modificable)
@@ -38,14 +47,15 @@ public class DonadorController {
     @PostMapping("/{id}/quejas") // POST /donadores/{id}/quejas
     public ResponseEntity<QuejaDTO> registrarQueja(@PathVariable String id, @RequestBody QuejaDTO dto) {
      QuejaDTO nuevaQueja = new QuejaDTO(
-            null,              
-            null,               
-            id,                 
-            dto.fecha(),        
-            dto.descripcion()   
+            null,
+            null,
+            id,
+            dto.fecha(),
+            dto.descripcion()
         );
-        
-        return ResponseEntity.ok(fachada.agregarQueja(nuevaQueja));
+        QuejaDTO resultado = fachada.agregarQueja(nuevaQueja);
+        metrics.quejaRegistrada();
+        return ResponseEntity.status(HttpStatus.CREATED).body(resultado);
     }
 
     @GetMapping("/{id}/quejas")

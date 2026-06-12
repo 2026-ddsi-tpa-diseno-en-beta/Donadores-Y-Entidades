@@ -71,6 +71,9 @@ public class Donador {
 
   public void registrarQueja(Queja queja) {
     this.listaDeQuejas.add(queja);
+    if (this.listaDeQuejas.size() >= 10) {
+      this.estado = EstadoDonadorEnum.BANEADO;
+    }
   }
 
   public Boolean puedeHacerDonacion() {
