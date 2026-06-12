@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 
-@RestControllerAdvice
+//@RestControllerAdvice
 public class ApiExceptionHandler {
 
     private final DonadorMetricas metrics;
