@@ -22,6 +22,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 public class Donador {
+
   @Id
   private String id;
 
