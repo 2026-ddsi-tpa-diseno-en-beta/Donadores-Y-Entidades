@@ -32,6 +32,8 @@ public class DonadoresYEntidadesDataMapper {
     e.setId(dto.id());
     e.setRazonSocial(dto.razonSocial());
     e.setDomicilio(dto.domicilio());
+    e.setTelefono(dto.telefono());
+    e.setCorreo(dto.correo());
     return e;
   }
 

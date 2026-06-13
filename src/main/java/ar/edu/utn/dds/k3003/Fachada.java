@@ -34,6 +34,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
   @Autowired
   private DonadoresRepository donadoresRepository;
   private EntidadesRepository entidadesRepository;
+  private NecesidadMaterialRepository necesidadMaterialRepository;
   
   private DonadoresYEntidadesDataMapper dataMapper = new DonadoresYEntidadesDataMapper();
   private FachadaIncentivos fachadaIncentivos;
@@ -99,17 +100,16 @@ public class Fachada implements FachadaDonadoresYEntidades {
   @Override
   public NecesidadMaterialDTO registrarNecesidad(NecesidadMaterialDTO necesidadDTO) {
     if (necesidadDTO == null || necesidadDTO.id() != null) throw new RuntimeException();
-    
-    EntidadBenefica entidadBenefica = entidadesRepository.findById(necesidadDTO.entidadID()).orElseGet(() -> {
-        EntidadBenefica nuevaEntidad = new EntidadBenefica();
-        nuevaEntidad.setId(necesidadDTO.entidadID());
-        return entidadesRepository.save(nuevaEntidad);
-    });
+
+    EntidadBenefica entidadBenefica = entidadesRepository.findById(necesidadDTO.entidadID())
+            .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada")); // Mejor que crear una vacía
 
     NecesidadMaterial necesidadMaterial = dataMapper.toNecesidad(necesidadDTO);
-    necesidadMaterial.setId("N-" + idCounter++);
+
     entidadBenefica.agregarNecesidad(necesidadMaterial);
+    necesidadMaterialRepository.save(necesidadMaterial);
     entidadesRepository.save(entidadBenefica);
+
     return dataMapper.toNecesidadDTO(necesidadMaterial);
   }
 
