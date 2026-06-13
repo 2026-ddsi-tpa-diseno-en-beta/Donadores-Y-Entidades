@@ -10,21 +10,28 @@ import ar.edu.utn.dds.k3003.repositories.*;
 import java.util.*;
 
 
+
 import java.util.stream.Collectors;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid;
 import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Service;
 
 
+@SpringBootApplication(scanBasePackages = "ar.edu.utn.dds.k3003")
+@EnableJpaRepositories(basePackages = "ar.edu.utn.dds.k3003.repositories")
+@EntityScan(basePackages = "ar.edu.utn.dds.k3003.model")
 
 @Service
 public class Fachada implements FachadaDonadoresYEntidades {
 
   
-  //@Autowired
+  @Autowired
   private DonadoresRepository donadoresRepository;
   private EntidadesRepository entidadesRepository;
   private NecesidadMaterialRepository necesidadMaterialRepository;
