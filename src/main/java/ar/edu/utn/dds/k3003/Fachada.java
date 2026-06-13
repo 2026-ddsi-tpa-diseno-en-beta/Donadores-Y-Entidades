@@ -107,6 +107,22 @@ public class Fachada implements FachadaDonadoresYEntidades {
     EntidadBenefica entidadBenefica = entidadesRepository.findById(necesidadDTO.entidadID())
             .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada"));
 
+    String nuevoId = java.util.UUID.randomUUID().toString();
+
+    NecesidadMaterial necesidadMaterial = dataMapper.toNecesidad(necesidadDTO);
+    necesidadMaterial.setId(nuevoId);
+
+    entidadBenefica.agregarNecesidad(necesidadMaterial);
+
+    entidadesRepository.saveAndFlush(entidadBenefica);
+
+    return dataMapper.toNecesidadDTO(necesidadMaterial);
+
+    /*if (necesidadDTO == null || necesidadDTO.id() != null) throw new RuntimeException();
+
+    EntidadBenefica entidadBenefica = entidadesRepository.findById(necesidadDTO.entidadID())
+            .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada"));
+
     NecesidadMaterial necesidadMaterial = dataMapper.toNecesidad(necesidadDTO);
     //para generar el di
     necesidadMaterial.setId(java.util.UUID.randomUUID().toString());
@@ -115,6 +131,10 @@ public class Fachada implements FachadaDonadoresYEntidades {
     entidadesRepository.save(entidadBenefica);
 
     return dataMapper.toNecesidadDTO(necesidadMaterial);
+    */
+
+
+
   }
 
   @Override
