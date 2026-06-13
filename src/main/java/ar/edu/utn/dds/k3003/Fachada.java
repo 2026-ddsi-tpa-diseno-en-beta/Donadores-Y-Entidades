@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 public class Fachada implements FachadaDonadoresYEntidades {
 
   
-  @Autowired
+  //@Autowired
   private DonadoresRepository donadoresRepository;
   private EntidadesRepository entidadesRepository;
   private NecesidadMaterialRepository necesidadMaterialRepository;
