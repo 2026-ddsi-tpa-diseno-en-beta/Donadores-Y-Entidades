@@ -43,13 +43,6 @@ public class Donador {
   @Column
   private String categoria;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-  @JoinColumn(name = "donador_id") // Esto crea la FK en la tabla de insignias
-  private List<Insignia> insignias = new ArrayList<>();
-
-  public void agregarInsignia(Insignia insignia) {
-    this.insignias.add(insignia);
-  }
 
   @OneToMany(cascade = CascadeType.ALL)
   @JoinColumn(name = "donador_id")
