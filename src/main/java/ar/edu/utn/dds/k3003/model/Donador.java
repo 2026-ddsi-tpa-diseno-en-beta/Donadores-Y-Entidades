@@ -1,15 +1,7 @@
 package ar.edu.utn.dds.k3003.model;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EstadoDonadorEnum;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Id;
-import jakarta.persistence.Entity;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +42,14 @@ public class Donador {
 
   @Column
   private String categoria;
+
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+  @JoinColumn(name = "donador_id") // Esto crea la FK en la tabla de insignias
+  private List<Insignia> insignias = new ArrayList<>();
+
+  public void agregarInsignia(Insignia insignia) {
+    this.insignias.add(insignia);
+  }
 
   @OneToMany(cascade = CascadeType.ALL)
   @JoinColumn(name = "donador_id")

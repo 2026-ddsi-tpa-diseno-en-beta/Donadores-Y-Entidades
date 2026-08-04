@@ -2,8 +2,10 @@ package ar.edu.utn.dds.k3003;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.*;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.*;
+import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
+import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.*;
@@ -36,6 +38,8 @@ public class Fachada implements FachadaDonadoresYEntidades {
   
   private DonadoresYEntidadesDataMapper dataMapper = new DonadoresYEntidadesDataMapper();
   private FachadaIncentivos fachadaIncentivos;
+  private FachadaDonaciones fachadaDonaciones;
+  private FachadaLogistica fachadaLogistica;
   private int idCounter = 1;
 
   @Autowired
@@ -56,6 +60,8 @@ public class Fachada implements FachadaDonadoresYEntidades {
   public void setFachadaIncentivos(FachadaIncentivos fachadaIncentivos) {
     this.fachadaIncentivos = fachadaIncentivos;
   }
+
+
 
   @Override
   public DonadorDTO agregarDonador(@Valid @RequestBody DonadorDTO donadorDTO) {
@@ -102,36 +108,26 @@ public class Fachada implements FachadaDonadoresYEntidades {
   public NecesidadMaterialDTO registrarNecesidad(NecesidadMaterialDTO necesidadDTO) {
     if (necesidadDTO == null || necesidadDTO.id() != null) throw new RuntimeException();
 
+    boolean productoValido = (fachadaDonaciones != null) ? fachadaDonaciones.esProductoValido(necesidadDTO.producto()) : true;
+    if (!productoValido) {
+      throw new IllegalArgumentException("producto solicitado no válido en el módulo de Donaciones.");
+    }
+    int stockDisponible = (fachadaLogistica != null) ? fachadaLogistica.getStock(necesidadDTO.producto()) : 0;
+    int cantidadAsignada = Math.min(necesidadDTO.cantidad(), stockDisponible);
+
     EntidadBenefica entidadBenefica = entidadesRepository.findById(necesidadDTO.entidadID())
             .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada"));
 
-    String nuevoId = java.util.UUID.randomUUID().toString();
-
     NecesidadMaterial necesidadMaterial = dataMapper.toNecesidad(necesidadDTO);
-    necesidadMaterial.setId(nuevoId);
+    necesidadMaterial.setId(java.util.UUID.randomUUID().toString());
+
+    necesidadMaterial.setCantidadAsignada(cantidadAsignada);
+    necesidadMaterial.setOrigenAsignacion("DONADORES_Y_ENTIDADES");
 
     entidadBenefica.agregarNecesidad(necesidadMaterial);
-
     entidadesRepository.saveAndFlush(entidadBenefica);
 
     return dataMapper.toNecesidadDTO(necesidadMaterial);
-
-    /*if (necesidadDTO == null || necesidadDTO.id() != null) throw new RuntimeException();
-
-    EntidadBenefica entidadBenefica = entidadesRepository.findById(necesidadDTO.entidadID())
-            .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada"));
-
-    NecesidadMaterial necesidadMaterial = dataMapper.toNecesidad(necesidadDTO);
-    //para generar el di
-    necesidadMaterial.setId(java.util.UUID.randomUUID().toString());
-    entidadBenefica.agregarNecesidad(necesidadMaterial);
-    necesidadMaterialRepository.save(necesidadMaterial);
-    entidadesRepository.save(entidadBenefica);
-
-    return dataMapper.toNecesidadDTO(necesidadMaterial);
-    */
-
-
 
   }
 
