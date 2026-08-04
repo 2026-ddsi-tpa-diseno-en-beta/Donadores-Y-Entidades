@@ -37,6 +37,20 @@ public class NecesidadMaterial {
   @Column
   private TipoNecesidadMaterialEnum tipo;
 
+  @Column
+  private Integer cantidadAsignada;
+
+  @Column
+  private String origenAsignacion;
+
+  public void setCantidadAsignada(Integer cantidadAsignada) {
+    this.cantidadAsignada = cantidadAsignada;
+  }
+
+  public void setOrigenAsignacion(String origenAsignacion) {
+    this.origenAsignacion = origenAsignacion;
+  }
+
   public NecesidadMaterial(String id, String descripcion, Integer cantidadObjetivo, 
       Integer nivelDeUrgencia, String entidadID, String productoSolicitadoID, TipoNecesidadMaterialEnum tipo) 
     {

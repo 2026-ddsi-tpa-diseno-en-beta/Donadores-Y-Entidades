@@ -107,7 +107,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
   @Override
   public NecesidadMaterialDTO registrarNecesidad(NecesidadMaterialDTO necesidadDTO) {
     if (necesidadDTO == null || necesidadDTO.id() != null) throw new RuntimeException();
-
+  /*
     boolean productoValido = (fachadaDonaciones != null) ? fachadaDonaciones.esProductoValido(necesidadDTO.producto()) : true;
     if (!productoValido) {
       throw new IllegalArgumentException("producto solicitado no válido en el módulo de Donaciones.");
@@ -126,8 +126,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
 
     entidadBenefica.agregarNecesidad(necesidadMaterial);
     entidadesRepository.saveAndFlush(entidadBenefica);
+  */
+    return necesidadDTO; //dataMapper.toNecesidadDTO(necesidadMaterial);
 
-    return dataMapper.toNecesidadDTO(necesidadMaterial);
 
   }
 
