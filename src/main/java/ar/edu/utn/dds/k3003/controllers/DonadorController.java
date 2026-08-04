@@ -48,7 +48,7 @@ public class DonadorController {
     public ResponseEntity<QuejaDTO> registrarQueja(@PathVariable String id, @RequestBody QuejaDTO dto) {
      QuejaDTO nuevaQueja = new QuejaDTO(
             null,
-            null,
+            dto.donacionID(),
             id,
             dto.fecha(),
             dto.descripcion()
