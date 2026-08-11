@@ -3,6 +3,10 @@ package ar.edu.utn.dds.k3003.controllers;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EntidadBeneficaDTO;
 import ar.edu.utn.dds.k3003.Fachada;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 import java.util.List;
 
 import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
@@ -37,5 +41,15 @@ public class EntidadController {
     @GetMapping("/{id}")
     public ResponseEntity<EntidadBeneficaDTO> buscar(@PathVariable String id) {
         return ResponseEntity.ok(fachada.buscarEntidadPorID(id));
+    }
+
+    @Operation(summary = "Modificar los datos de una Entidad Benéfica existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Entidad modificada correctamente"),
+            @ApiResponse(responseCode = "404", description = "Entidad no encontrada")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<EntidadBeneficaDTO> modificarEntidad(@PathVariable String id, @RequestBody EntidadBeneficaDTO dto) {
+        return ResponseEntity.ok(fachada.modificarEntidad(id, dto));
     }
 }

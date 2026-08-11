@@ -10,6 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 
 @RequestMapping("/necesidades")
 @RestController
@@ -36,5 +40,36 @@ public class NecesidadController {
     public ResponseEntity<String> satisfacer(@PathVariable String necesidadID, @RequestParam Integer cantidadASatisfacer) {
         fachada.satisfacerNecesidad(necesidadID, cantidadASatisfacer);
         return ResponseEntity.ok("necesidad Satisfecha!");
+    }
+
+    @Operation(summary = "Buscar necesidad por ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Necesidad encontrada"),
+            @ApiResponse(responseCode = "404", description = "Necesidad no encontrada")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<NecesidadMaterialDTO> buscarPorId(@PathVariable String id) {
+        return ResponseEntity.ok(fachada.buscarNecesidadPorID(id));
+    }
+
+    @Operation(summary = "Modificar una necesidad existente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Necesidad modificada correctamente"),
+            @ApiResponse(responseCode = "404", description = "Necesidad no encontrada")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<NecesidadMaterialDTO> modificar(@PathVariable String id, @RequestBody NecesidadMaterialDTO dto) {
+        return ResponseEntity.ok(fachada.modificarNecesidad(id, dto));
+    }
+
+    @Operation(summary = "Borrar una necesidad por ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Necesidad borrada correctamente"),
+            @ApiResponse(responseCode = "404", description = "Necesidad no encontrada")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> borrar(@PathVariable String id) {
+        fachada.borrarNecesidad(id);
+        return ResponseEntity.ok().build();
     }
 }
