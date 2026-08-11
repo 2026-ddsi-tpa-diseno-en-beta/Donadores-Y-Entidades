@@ -104,6 +104,18 @@
         "summary": "Buscar entidad por ID",
         "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
         "responses": { "200": { "description": "Entidad encontrada" } }
+      },
+      "put": {
+        "summary": "Modificar los datos de una Entidad Benéfica existente",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EntidadDTO" } } }
+        },
+        "responses": {
+          "200": { "description": "Entidad modificada correctamente" },
+          "404": { "description": "Entidad no encontrada" }
+        }
       }
     },
     "/necesidades": {
@@ -119,6 +131,36 @@
         "summary": "Obtener necesidades por producto",
         "parameters": [{ "name": "productoID", "in": "query", "required": true, "schema": { "type": "string" } }],
         "responses": { "200": { "description": "Lista de necesidades" } }
+      }
+    },
+    "/necesidades/{id}": {
+      "get": {
+        "summary": "Buscar necesidad por ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Necesidad encontrada" },
+          "404": { "description": "Necesidad no encontrada" }
+        }
+      },
+      "put": {
+        "summary": "Modificar una necesidad existente",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/NecesidadDTO" } } }
+        },
+        "responses": {
+          "200": { "description": "Necesidad modificada correctamente" },
+          "404": { "description": "Necesidad no encontrada" }
+        }
+      },
+      "delete": {
+        "summary": "Borrar una necesidad por ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Necesidad borrada correctamente" },
+          "404": { "description": "Necesidad no encontrada" }
+        }
       }
     },
     "/necesidades/{necesidadID}/satisfaccion": {

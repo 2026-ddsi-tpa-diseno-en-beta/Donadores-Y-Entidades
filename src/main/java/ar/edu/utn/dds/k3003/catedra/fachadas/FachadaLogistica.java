@@ -27,4 +27,9 @@ public interface FachadaLogistica {
   void setFachadaDonadoresYEntidades(FachadaDonadoresYEntidades fachadaDonadoresYEntidades);
 
   void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones);
+
+  StockDTO consultarStock(String productoId);
+
+  List<AsignacionDTO> asignarDesdeStock(
+          String necesidadId, String productoId, Integer cantidadSolicitada);
 }

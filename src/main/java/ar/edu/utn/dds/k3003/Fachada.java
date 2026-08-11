@@ -11,6 +11,8 @@ import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.*;
 import java.util.*;
 
+import ar.edu.utn.dds.k3003.catedra.dtos.logistica.AsignacionDTO;
+
 
 
 import java.util.stream.Collectors;
@@ -23,8 +25,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Service;
-
-
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -56,6 +57,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
   public Fachada() {
   }
 
+
+  public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) { this.fachadaDonaciones = fachadaDonaciones;}
+  public void setFachadaLogistica(FachadaLogistica fachadaLogistica) { this.fachadaLogistica = fachadaLogistica; }
   @Override
   public void setFachadaIncentivos(FachadaIncentivos fachadaIncentivos) {
     this.fachadaIncentivos = fachadaIncentivos;
@@ -105,29 +109,44 @@ public class Fachada implements FachadaDonadoresYEntidades {
   }
 
   @Override
+  @Transactional
   public NecesidadMaterialDTO registrarNecesidad(NecesidadMaterialDTO necesidadDTO) {
     if (necesidadDTO == null || necesidadDTO.id() != null) throw new RuntimeException();
-  /*
-    boolean productoValido = (fachadaDonaciones != null) ? fachadaDonaciones.esProductoValido(necesidadDTO.producto()) : true;
-    if (!productoValido) {
-      throw new IllegalArgumentException("producto solicitado no válido en el módulo de Donaciones.");
+    if (fachadaDonaciones != null) {
+      try {
+        fachadaDonaciones.buscarProductoPorID(necesidadDTO.productoSolicitadoID());
+      } catch (NoSuchElementException e) {
+        throw new IllegalArgumentException("producto solicitado no válido en Donaciones.");
+      }
     }
-    int stockDisponible = (fachadaLogistica != null) ? fachadaLogistica.getStock(necesidadDTO.producto()) : 0;
-    int cantidadAsignada = Math.min(necesidadDTO.cantidad(), stockDisponible);
 
     EntidadBenefica entidadBenefica = entidadesRepository.findById(necesidadDTO.entidadID())
             .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada"));
 
+    int cantidadAAsignar = 0;
+    if (fachadaLogistica != null) {
+      var stock = fachadaLogistica.consultarStock(necesidadDTO.productoSolicitadoID());
+      int stockDisponible = stock.cantidadDisponible();
+
+      cantidadAAsignar = Math.min(necesidadDTO.cantidadObjetivo(), stockDisponible);
+    }
+
     NecesidadMaterial necesidadMaterial = dataMapper.toNecesidad(necesidadDTO);
     necesidadMaterial.setId(java.util.UUID.randomUUID().toString());
-
-    necesidadMaterial.setCantidadAsignada(cantidadAsignada);
-    necesidadMaterial.setOrigenAsignacion("DONADORES_Y_ENTIDADES");
+    necesidadMaterial.setCantidadAsignada(cantidadAAsignar);
 
     entidadBenefica.agregarNecesidad(necesidadMaterial);
     entidadesRepository.saveAndFlush(entidadBenefica);
-  */
-    return necesidadDTO; //dataMapper.toNecesidadDTO(necesidadMaterial);
+
+    if (fachadaLogistica != null && cantidadAAsignar > 0) {
+        fachadaLogistica.asignarDesdeStock(
+                necesidadMaterial.getId(),
+                necesidadDTO.productoSolicitadoID(),
+                necesidadDTO.cantidadObjetivo()
+        );
+    }
+
+    return dataMapper.toNecesidadDTO(necesidadMaterial);
 
 
   }
@@ -261,6 +280,56 @@ public class Fachada implements FachadaDonadoresYEntidades {
     return new DonadorStatsDTO(donador.getId(), donador.getNombre(), donador.getApellido(), donador.getEdad(), 
                                donador.getEstado(), donador.getCategoria(), misionID, insigniasNombres);
   }
+
+
+  @Transactional
+  public EntidadBeneficaDTO modificarEntidad(String entidadID, EntidadBeneficaDTO entidadDTO) {
+    if (entidadID == null || entidadDTO == null) throw new IllegalArgumentException("Datos inválidos");
+
+    EntidadBenefica entidad = entidadesRepository.findById(entidadID)
+            .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada con ID: " + entidadID));
+
+    // Actualizamos los campos
+    entidad.setRazonSocial(entidadDTO.razonSocial());
+    entidad.setCorreo(entidadDTO.correo());
+
+    entidadesRepository.save(entidad);
+    return dataMapper.toEntidadDTO(entidad);
+  }
+
+  public NecesidadMaterialDTO buscarNecesidadPorID(String necesidadID) {
+    if (necesidadID == null) throw new IllegalArgumentException("ID inválido");
+
+    return necesidadMaterialRepository.findById(necesidadID)
+            .map(dataMapper::toNecesidadDTO)
+            .orElseThrow(() -> new NoSuchElementException("Necesidad no encontrada con ID: " + necesidadID));
+  }
+
+  @Transactional
+  public NecesidadMaterialDTO modificarNecesidad(String necesidadID, NecesidadMaterialDTO necesidadDTO) {
+    if (necesidadID == null || necesidadDTO == null) throw new IllegalArgumentException("Datos inválidos");
+
+    NecesidadMaterial necesidad = necesidadMaterialRepository.findById(necesidadID)
+            .orElseThrow(() -> new NoSuchElementException("Necesidad no encontrada con ID: " + necesidadID));
+
+    necesidad.setDescripcion(necesidadDTO.descripcion());
+    necesidad.setCantidadObjetivo(necesidadDTO.cantidadObjetivo());
+
+    necesidadMaterialRepository.save(necesidad);
+    return dataMapper.toNecesidadDTO(necesidad);
+  }
+
+  @Transactional
+  public void borrarNecesidad(String necesidadID) {
+    if (necesidadID == null) throw new IllegalArgumentException("ID inválido");
+
+    if (!necesidadMaterialRepository.existsById(necesidadID)) {
+      throw new NoSuchElementException("Necesidad no encontrada con ID: " + necesidadID);
+    }
+
+    necesidadMaterialRepository.deleteById(necesidadID);
+  }
+
 
   public List<DonadorDTO> listarDonadores() {
       List<DonadorDTO> dtos = new ArrayList<>();
