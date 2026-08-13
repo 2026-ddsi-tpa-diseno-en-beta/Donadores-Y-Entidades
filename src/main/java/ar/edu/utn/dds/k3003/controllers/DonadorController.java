@@ -6,12 +6,15 @@ import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EstadoDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.QuejaDTO;
 import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
 
+import ar.edu.utn.dds.k3003.model.Donador;
+import ar.edu.utn.dds.k3003.repositories.DonadoresRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/donadores")
@@ -19,10 +22,12 @@ public class DonadorController {
 
     private final Fachada fachada;
     private final DonadorMetricas metrics;
+    private final DonadoresRepository donadoresRepository;
 
-    public DonadorController(Fachada fachada, DonadorMetricas metrics) {
+    public DonadorController(Fachada fachada, DonadorMetricas metrics, DonadoresRepository donadoresRepository) {
         this.fachada = fachada;
         this.metrics = metrics;
+        this.donadoresRepository = donadoresRepository;
     }
 
     @PostMapping // POST /donadores (No modificable)
@@ -89,5 +94,12 @@ public class DonadorController {
     @GetMapping("/quejas/todas")
     public ResponseEntity<List<QuejaDTO>> listarTodasLasQuejas() {
         return ResponseEntity.ok(fachada.obtenerTodasLasQuejas());
+    }
+    @DeleteMapping("/donadores/{id}")
+    public ResponseEntity<Void> eliminarDonador(@PathVariable String id) {
+        Donador donador = donadoresRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Donador no encontrado"));
+        donadoresRepository.delete(donador);
+        return ResponseEntity.ok().build();
     }
 }

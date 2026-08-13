@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -63,14 +65,25 @@ public class Donador {
     this.historialEstados.add(this.estado);
   }
 
-  public void registrarQueja(Queja queja) {
-    this.listaDeQuejas.add(queja);
-    if (this.listaDeQuejas.size() >= 10) {
-      this.estado = EstadoDonadorEnum.BANEADO;
+  public Boolean puedeHacerDonacion() {
+    if (this.estado == EstadoDonadorEnum.BANEADO) return false;
+    if (this.estado == EstadoDonadorEnum.SOSPECHOSO) {
+      return ThreadLocalRandom.current().nextBoolean();
     }
+    return true;
+  }
+  public void cambiarEstado(EstadoDonadorEnum nuevoEstado) {
+    this.estado = nuevoEstado;
   }
 
-  public Boolean puedeHacerDonacion() {
-    return !EstadoDonadorEnum.BANEADO.equals(this.estado);
+  public void registrarQueja(Queja queja) {
+    this.listaDeQuejas.add(queja);
+    int cantidadQuejas = this.listaDeQuejas.size();
+
+    if (cantidadQuejas >= 10) {
+      cambiarEstado(EstadoDonadorEnum.BANEADO);
+    } else if (cantidadQuejas >= 5) {
+      cambiarEstado(EstadoDonadorEnum.SOSPECHOSO);
+    }
   }
 }
