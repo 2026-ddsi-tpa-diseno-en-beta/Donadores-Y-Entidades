@@ -28,7 +28,6 @@ public class EntidadBenefica {
     private String correo;
 
     @OneToMany(mappedBy = "entidadBenefica", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "entidad_id")
     private List<NecesidadMaterial> necesidades = new ArrayList<>();
 
 
