@@ -42,6 +42,10 @@ public class NecesidadMaterial {
   @Column
   private String origenAsignacion;
 
+  @ManyToOne
+  @JoinColumn(name = "entidad_id")
+  private EntidadBenefica entidadBenefica;
+
 
   public NecesidadMaterial(String id, String descripcion, Integer cantidadObjetivo,
       Integer nivelDeUrgencia, String entidadID, String productoSolicitadoID, TipoNecesidadMaterialEnum tipo)
