@@ -27,7 +27,7 @@ public class EntidadBenefica {
     @Column
     private String correo;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "entidadBenefica", cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "entidad_id")
     private List<NecesidadMaterial> necesidades = new ArrayList<>();
 

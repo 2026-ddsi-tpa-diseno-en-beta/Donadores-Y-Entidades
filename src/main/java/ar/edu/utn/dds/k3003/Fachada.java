@@ -179,6 +179,8 @@ public class Fachada implements FachadaDonadoresYEntidades {
             quejaDTO.fecha()
     );
     donador.registrarQueja(queja);
+
+
     donadoresRepository.save(donador);
     metrics.quejaRegistrada();
 
