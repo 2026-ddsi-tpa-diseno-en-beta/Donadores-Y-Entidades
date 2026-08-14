@@ -230,12 +230,24 @@ public class Fachada implements FachadaDonadoresYEntidades {
             .orElseThrow(() -> new NoSuchElementException("Donador no encontrado: " + donadorID));
 
 
-    donador.setNombre(donadorDTO.nombre());
-    donador.setApellido(donadorDTO.apellido());
-    donador.setEmail(donadorDTO.email());
-    donador.setEdad(donadorDTO.edad());
-    donador.setDomicilio(donadorDTO.domicilio());
-    donador.setNroDocumento(donadorDTO.nroDocumento());
+    if (donadorDTO.nombre() != null) {
+      donador.setNombre(donadorDTO.nombre());
+    }
+    if (donadorDTO.apellido() != null) {
+      donador.setApellido(donadorDTO.apellido());
+    }
+    if (donadorDTO.email() != null) {
+      donador.setEmail(donadorDTO.email());
+    }
+    if (donadorDTO.edad() != null) {
+      donador.setEdad(donadorDTO.edad());
+    }
+    if (donadorDTO.domicilio() != null) {
+      donador.setDomicilio(donadorDTO.domicilio());
+    }
+    if (donadorDTO.nroDocumento() != null) {
+      donador.setNroDocumento(donadorDTO.nroDocumento());
+    }
 
     donadoresRepository.save(donador);
     return dataMapper.toDonadorDTO(donador);
@@ -315,11 +327,18 @@ public class Fachada implements FachadaDonadoresYEntidades {
     EntidadBenefica entidad = entidadesRepository.findById(entidadID)
             .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada con ID: " + entidadID));
 
-    // Actualizamos los campos
-    entidad.setRazonSocial(entidadDTO.razonSocial());
-    entidad.setDomicilio(entidadDTO.domicilio());
-    entidad.setTelefono(entidadDTO.telefono());
-    entidad.setCorreo(entidadDTO.correo());
+    if (entidadDTO.razonSocial() != null) {
+      entidad.setRazonSocial(entidadDTO.razonSocial());
+    }
+    if (entidadDTO.domicilio() != null) {
+      entidad.setDomicilio(entidadDTO.domicilio());
+    }
+    if (entidadDTO.telefono() != null) {
+      entidad.setTelefono(entidadDTO.telefono());
+    }
+    if (entidadDTO.correo() != null) {
+      entidad.setCorreo(entidadDTO.correo());
+    }
 
     entidadesRepository.save(entidad);
     return dataMapper.toEntidadDTO(entidad);
