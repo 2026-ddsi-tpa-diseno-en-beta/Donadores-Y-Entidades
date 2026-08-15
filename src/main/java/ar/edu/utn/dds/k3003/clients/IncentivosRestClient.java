@@ -33,19 +33,29 @@ public class IncentivosRestClient implements FachadaIncentivos {
     }
     @Override
     public List<InsigniaDTO> getInsigniasDeDonador(String donadorId) {
-        String url = urlIncentivos + "/donadores/" + donadorId + "/insignias";
+        String url = urlIncentivos + "/insignias/donador/" + donadorId;
         try {
             InsigniaDTO[] insignias = restTemplate.getForObject(url, InsigniaDTO[].class);
             return insignias != null ? Arrays.asList(insignias) : new ArrayList<>();
         } catch (Exception e) {
-            System.out.println("Error al contactar a Incentivos: " + e.getMessage());
+            System.out.println("Error al conectar con Incentivos: " + e.getMessage());
             return new ArrayList<>();
         }
     }
 
     @Override
     public MisionDTO getMisionEnCursoDeDonador(String donadorId) {
-        return null;
+        String url = urlIncentivos + "/misiones/donador/" + donadorId;
+
+        try {
+            return restTemplate.getForObject(url, MisionDTO.class);
+
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            return null;
+        } catch (Exception e) {
+            System.out.println("Error al conectar con Incentivos (Misión Actual): " + e.getMessage());
+            return null;
+        }
     }
 
     @Override

@@ -78,7 +78,26 @@ public class LogisticaRestClient implements FachadaLogistica {
 
     @Override
     public List<AsignacionDTO> asignarDesdeStock(String necesidadID, String productoID, Integer cantidad) {
-        return new ArrayList<>();
+        String url = urlLogistica + "/stock/asignaciones";
+
+        java.util.Map<String, Object> requestBody = new java.util.HashMap<>();
+        requestBody.put("necesidadId", necesidadID);
+        requestBody.put("productoId", productoID);
+        requestBody.put("cantidad", cantidad);
+
+        try {
+            AsignacionDTO[] respuesta = restTemplate.postForObject(url, requestBody, AsignacionDTO[].class);
+
+            if (respuesta != null) {
+                return java.util.Arrays.asList(respuesta);
+            } else {
+                return new java.util.ArrayList<>();
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error al comunicarse con Logística para asignar stock: " + e.getMessage());
+            return new java.util.ArrayList<>();
+        }
     }
 
 }

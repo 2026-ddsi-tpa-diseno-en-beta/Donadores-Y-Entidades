@@ -147,7 +147,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
     NecesidadMaterial necesidadMaterial = dataMapper.toNecesidad(necesidadDTO);
     necesidadMaterial.setId(java.util.UUID.randomUUID().toString());
     necesidadMaterial.setCantidadAsignada(cantidadAAsignar);
-
+    necesidadMaterial.setEntidadBenefica(entidadBenefica);
     entidadBenefica.agregarNecesidad(necesidadMaterial);
     entidadesRepository.saveAndFlush(entidadBenefica);
 
@@ -269,7 +269,8 @@ public class Fachada implements FachadaDonadoresYEntidades {
     List<NecesidadMaterialDTO> necesidadesInsatisfechas = new ArrayList<>();
     entidadesRepository.findAll().forEach(entidad -> {
       entidad.getNecesidades().stream()
-          .filter(necesidad -> productoID.equals(necesidad.getProductoSolicitadoID()) && necesidad.getCantidadObjetivo() > 0)
+          .filter(necesidad -> productoID.equals(necesidad.getProductoSolicitadoID())
+                  && necesidad.getCantidadAsignada() < necesidad.getCantidadObjetivo())
           .map(dataMapper::toNecesidadDTO)
           .forEach(necesidadesInsatisfechas::add);
     });
