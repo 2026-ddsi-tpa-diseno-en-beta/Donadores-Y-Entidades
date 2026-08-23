@@ -39,7 +39,7 @@ public class DonadoresYEntidadesDataMapper {
 
   public NecesidadMaterialDTO toNecesidadDTO(NecesidadMaterial n) {
     return new NecesidadMaterialDTO(n.getId(), n.getEntidadID(), n.getNivelDeUrgencia(), 
-                                     n.getDescripcion(), n.getCantidadObjetivo(), 
+                                     n.getDescripcion(), n.getCantidadObjetivo(), n.getCantidadAsignada(),
                                      n.getProductoSolicitadoID(), n.getTipo());
   }
 
