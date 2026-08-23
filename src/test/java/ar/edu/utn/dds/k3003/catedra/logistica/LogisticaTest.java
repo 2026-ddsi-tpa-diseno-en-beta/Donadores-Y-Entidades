@@ -52,6 +52,7 @@ public class LogisticaTest {
             5,
             "descripcion1",
             10,
+            0,
             "producto1",
             TipoNecesidadMaterialEnum.EXTRAORDINARIA);
     paqueteEjemplo = new PaqueteDTO("paquete1", "donacion1", "producto1", 10);
@@ -122,7 +123,8 @@ public class LogisticaTest {
                     5,
                     "descripcion1",
                     5,
-                    "producto1",
+                    0,
+                        "producto1",
                     TipoNecesidadMaterialEnum.EXTRAORDINARIA)));
 
     DepositoDTO depositoRetorno = instancia.agregarDeposito(depositoEjemplo);
@@ -172,7 +174,8 @@ public class LogisticaTest {
                 5,
                 "descripcion1",
                 5,
-                "producto1",
+                0,
+                    "producto1",
                 TipoNecesidadMaterialEnum.EXTRAORDINARIA));
 
     DepositoDTO depositoRetorno = instancia.agregarDeposito(depositoEjemplo);
@@ -197,6 +200,7 @@ public class LogisticaTest {
                 5,
                 "descripcion1",
                 5,
+                0,
                 "producto1",
                 TipoNecesidadMaterialEnum.EXTRAORDINARIA));
 
