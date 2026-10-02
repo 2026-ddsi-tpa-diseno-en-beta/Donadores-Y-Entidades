@@ -35,6 +35,8 @@ class FlujosDonadoresTest {
     when(logistica.consultarStock("p")).thenReturn(new StockDTO("p",20));
     var creada=fachada.registrarNecesidad(need(TipoNecesidadMaterialEnum.EXTRAORDINARIA));
     assertEquals(0,creada.cantidadAsignada()); verify(logistica).asignarDesdeStock(creada.id(),"p",10);
+    assertEquals(1, registry.get("donadores.necesidades.registradas").counter().count());
+    assertEquals(0, registry.get("donadores.necesidades.unidades.entregadas").counter().count());
   }
   @Test void stockInsuficientePermiteReservaParcialExtraordinaria() {
     when(logistica.consultarStock("p")).thenReturn(new StockDTO("p",3));
@@ -50,6 +52,7 @@ class FlujosDonadoresTest {
     when(logistica.consultarStock("p")).thenThrow(new ResourceAccessException("offline"));
     assertThrows(ResourceAccessException.class,()->fachada.registrarNecesidad(need(TipoNecesidadMaterialEnum.EXTRAORDINARIA)));
     verify(entidades,never()).saveAndFlush(any());
+    assertEquals(0, registry.get("donadores.necesidades.registradas").counter().count());
   }
   @Test void validaUrgenciaAntesDeConsultarServicios() {
     var dto=new NecesidadMaterialDTO(null,"e",11,"Inválida",10,0,"p",TipoNecesidadMaterialEnum.EXTRAORDINARIA);

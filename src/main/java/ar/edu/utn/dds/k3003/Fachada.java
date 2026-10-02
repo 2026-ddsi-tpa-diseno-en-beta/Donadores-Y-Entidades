@@ -170,6 +170,10 @@ public class Fachada implements FachadaDonadoresYEntidades {
         );
     }
 
+    metrics.necesidadRegistrada();
+    org.slf4j.LoggerFactory.getLogger(Fachada.class).info(
+        "necesidad.registrada id={} tipo={} objetivo={} reservada={}",
+        necesidadMaterial.getId(), necesidadDTO.tipo(), necesidadDTO.cantidadObjetivo(), cantidadAAsignar);
     return dataMapper.toNecesidadDTO(necesidadMaterial);
 
 
@@ -309,6 +313,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
           necesidadMaterial.satisfacer(cantidadASatisfacer);
           
           entidadesRepository.save(entidadBenefica);
+          metrics.unidadesEntregadas(cantidadASatisfacer);
+          org.slf4j.LoggerFactory.getLogger(Fachada.class).info(
+              "necesidad.entrega_registrada id={} cantidad={}", necesidadID, cantidadASatisfacer);
           
           return dataMapper.toNecesidadDTO(necesidadMaterial);
         }

@@ -8,8 +8,10 @@ Configurar las URLs de integración definidas en application.properties. En prod
 
 Swagger: `/swagger-ui/index.html`; contrato: `/v3/api-docs`; salud: `/actuator/health`; métricas: `/actuator/prometheus`. Los cuatro componentes propagan `X-Trace-Id`. Para logs centralizados configurar `BETTERSTACK_SOURCE_TOKEN` y `BETTERSTACK_INGEST_URL`; verificar la recepción en la cuenta del equipo.
 
-La integración de los seis flujos está en el repo testing, `local/probar_integracion.py`, y requiere los cuatro repos como carpetas hermanas. La suite usa H2 aislado y simula callbacks del worker; no valida un broker externo. MCP está como módulo independiente en `testing/mcp-server` y el bot en telegramBot.
+La integración de los seis flujos está en el repo testing, `local/probar_integracion.py`, y requiere los cuatro repos como carpetas hermanas. La suite usa H2 aislado y simula callbacks del worker; no valida un broker externo. MCP está como módulo independiente en `mcp-server` y el bot en telegramBot.
 
 El despliegue todavía requiere probar la base existente, las credenciales reales y las URLs públicas. Una llamada HTTP entre servicios no participa de la transacción de la base local: si falla otro componente durante una operación, revisar el resultado con el traceId antes de reintentar.
 
 Las necesidades agregan columnas `periodo` e `inicio_periodo`. Revisar el cambio de esquema antes de desplegar sobre una base existente. Para filas históricas sin período, el código usa SEMANAL y conserva la cantidad registrada al inicializar el período. GET /necesidades/{id}/periodo devuelve el inicio vigente. Las asignaciones antiguas necesitan replanificación operativa.
+
+Configuración completa del ensayo externo: `testing/SETUP_PRESENTACION.md`. Datadog se habilita explícitamente con `DATADOG_ENABLED`; Prometheus permite validar métricas sin credenciales de un proveedor.

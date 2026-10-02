@@ -10,8 +10,16 @@ public class DonadorMetricas {
     private final Counter quejasRegistradas;
     private final Counter donadoresBaneados;
     private final Counter errores;
+    private final Counter necesidadesRegistradas;
+    private final Counter unidadesEntregadas;
 
     public DonadorMetricas(MeterRegistry registry) {
+        necesidadesRegistradas = Counter.builder("donadores.necesidades.registradas")
+                .description("Necesidades creadas luego de completar la reserva de stock")
+                .register(registry);
+        unidadesEntregadas = Counter.builder("donadores.necesidades.unidades.entregadas")
+                .description("Unidades recibidas físicamente por las entidades")
+                .register(registry);
         donadoresRegistrados = Counter.builder("donadores.registrados")
                 .description("Cantidad de donadores creados")
                 .register(registry);
@@ -30,4 +38,6 @@ public class DonadorMetricas {
     public void quejaRegistrada() { quejasRegistradas.increment(); }
     public void donadorBaneado() { donadoresBaneados.increment(); }
     public void error() { errores.increment(); }
+    public void necesidadRegistrada() { necesidadesRegistradas.increment(); }
+    public void unidadesEntregadas(int cantidad) { unidadesEntregadas.increment(cantidad); }
 }
