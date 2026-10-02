@@ -18,7 +18,7 @@ import java.util.NoSuchElementException;
 @Component
 public class DonacionesRestClient implements FachadaDonaciones {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = ar.edu.utn.dds.k3003.observability.HttpClients.restTemplate();
 
     @Value("${URL_DONACIONES}")
     private String urlDonaciones;

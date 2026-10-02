@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
+@Transactional
 public class Fachada implements FachadaDonadoresYEntidades {
 
   
@@ -84,6 +85,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
     Donador donadorModel = dataMapper.toDonador(donadorDTO);
     donadorModel.setId(id);
     donadorModel.setEstado(EstadoDonadorEnum.VERIFICADO);
+    donadorModel.setCategoria(CategoriaDonadorEnum.OCASIONAL.name());
     donadoresRepository.save(donadorModel);
     metrics.donadorRegistrado();
     return dataMapper.toDonadorDTO(donadorModel);
@@ -123,7 +125,12 @@ public class Fachada implements FachadaDonadoresYEntidades {
   @Override
   @Transactional
   public NecesidadMaterialDTO registrarNecesidad(NecesidadMaterialDTO necesidadDTO) {
-    if (necesidadDTO == null || necesidadDTO.id() != null) throw new RuntimeException();
+    return registrarNecesidad(necesidadDTO, PeriodoNecesidad.SEMANAL);
+  }
+
+  public NecesidadMaterialDTO registrarNecesidad(NecesidadMaterialDTO necesidadDTO, PeriodoNecesidad periodo) {
+    if (necesidadDTO == null || necesidadDTO.id() != null) throw new IllegalArgumentException("Necesidad inválida");
+    validarNecesidad(necesidadDTO);
     if (fachadaDonaciones != null) {
       try {
         fachadaDonaciones.buscarProductoPorID(necesidadDTO.productoSolicitadoID());
@@ -145,12 +152,16 @@ public class Fachada implements FachadaDonadoresYEntidades {
     }
 
     NecesidadMaterial necesidadMaterial = dataMapper.toNecesidad(necesidadDTO);
+    necesidadMaterial.setPeriodo(periodo);
+    necesidadMaterial.actualizarPeriodo(java.time.LocalDate.now());
     necesidadMaterial.setId(java.util.UUID.randomUUID().toString());
-    necesidadMaterial.setCantidadAsignada(cantidadAAsignar);
+    // La cantidad recibida se actualiza al entregar, no al reservar stock.
+    necesidadMaterial.setCantidadAsignada(0);
     necesidadMaterial.setEntidadBenefica(entidadBenefica);
     entidadBenefica.agregarNecesidad(necesidadMaterial);
     entidadesRepository.saveAndFlush(entidadBenefica);
 
+    if (necesidadDTO.tipo() == TipoNecesidadMaterialEnum.RECURRENTE && cantidadAAsignar < necesidadDTO.cantidadObjetivo()) cantidadAAsignar = 0;
     if (fachadaLogistica != null && cantidadAAsignar > 0) {
         fachadaLogistica.asignarDesdeStock(
                 necesidadMaterial.getId(),
@@ -183,6 +194,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
 
     donadoresRepository.save(donador);
     metrics.quejaRegistrada();
+    if (donador.getEstado() == EstadoDonadorEnum.BANEADO && donador.getListaDeQuejas().size() == 10) metrics.donadorBaneado();
 
     return dataMapper.toQuejaDTO(queja);
 
@@ -217,7 +229,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
   public DonadorDTO modificarEstado(String donadorID, EstadoDonadorEnum nuevoEstado) {
     if (donadorID == null || nuevoEstado == null) throw new RuntimeException();
     Donador donador = donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
-    donador.setEstado(nuevoEstado);
+    donador.cambiarEstado(nuevoEstado);
     if (nuevoEstado == EstadoDonadorEnum.BANEADO) {
       metrics.donadorBaneado();
     }
@@ -259,6 +271,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
   public DonadorDTO modifcarCategoria(String donadorID, String nuevaCategoria) {
     if (donadorID == null || nuevaCategoria == null) throw new RuntimeException();
     Donador donador = donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
+    CategoriaDonadorEnum.valueOf(nuevaCategoria);
     donador.setCategoria(nuevaCategoria);
     donadoresRepository.save(donador);
     return dataMapper.toDonadorDTO(donador);
@@ -269,6 +282,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
     List<NecesidadMaterialDTO> necesidadesInsatisfechas = new ArrayList<>();
     entidadesRepository.findAll().forEach(entidad -> {
       entidad.getNecesidades().stream()
+          .peek(necesidad -> necesidad.actualizarPeriodo(java.time.LocalDate.now()))
           .filter(necesidad -> productoID.equals(necesidad.getProductoSolicitadoID())
                   && necesidad.getCantidadAsignada() < necesidad.getCantidadObjetivo())
           .map(dataMapper::toNecesidadDTO)
@@ -284,9 +298,10 @@ public class Fachada implements FachadaDonadoresYEntidades {
     for (EntidadBenefica entidadBenefica : entidadesRepository.findAll()) {
       for (NecesidadMaterial necesidadMaterial : entidadBenefica.getNecesidades()) {
         if (necesidadID.equals(necesidadMaterial.getId())) {
+          necesidadMaterial.actualizarPeriodo(java.time.LocalDate.now());
           
           if (necesidadMaterial.getTipo() == TipoNecesidadMaterialEnum.RECURRENTE) {
-              if (!cantidadASatisfacer.equals(necesidadMaterial.getCantidadObjetivo())) {
+              if (cantidadASatisfacer < necesidadMaterial.getCantidadObjetivo() || necesidadMaterial.getCantidadAsignada() > 0) {
                   throw new RuntimeException("No se aceptan donaciones parciales para necesidades recurrentes");
               }
           }
@@ -351,7 +366,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
     if (necesidadID == null) throw new IllegalArgumentException("ID inválido");
 
     return necesidadMaterialRepository.findById(necesidadID)
-            .map(dataMapper::toNecesidadDTO)
+            .map(n -> { n.actualizarPeriodo(java.time.LocalDate.now()); return dataMapper.toNecesidadDTO(n); })
             .orElseThrow(() -> new NoSuchElementException("Necesidad no encontrada con ID: " + necesidadID));
   }
 
@@ -363,7 +378,17 @@ public class Fachada implements FachadaDonadoresYEntidades {
       for (NecesidadMaterial necesidad : entidad.getNecesidades()) {
         if (necesidadID.equals(necesidad.getId())) {
 
+          validarNecesidad(necesidadDTO);
+          if (!Objects.equals(necesidad.getEntidadID(), necesidadDTO.entidadID())
+              || !Objects.equals(necesidad.getProductoSolicitadoID(), necesidadDTO.productoSolicitadoID())
+              || necesidad.getTipo() != necesidadDTO.tipo()) {
+            throw new IllegalArgumentException("Para cambiar entidad, producto o tipo, cree otra necesidad");
+          }
+          if (necesidadDTO.cantidadObjetivo() < necesidad.getCantidadAsignada()) {
+            throw new IllegalArgumentException("El objetivo no puede ser menor que la cantidad ya recibida");
+          }
           necesidad.setDescripcion(necesidadDTO.descripcion());
+          necesidad.setNivelDeUrgencia(necesidadDTO.nivelDeUrgencia());
           necesidad.setCantidadObjetivo(necesidadDTO.cantidadObjetivo());
 
           entidadesRepository.save(entidad);
@@ -386,6 +411,15 @@ public class Fachada implements FachadaDonadoresYEntidades {
   }
 
 
+  private void validarNecesidad(NecesidadMaterialDTO dto) {
+    if (dto.entidadID() == null || dto.entidadID().isBlank()
+        || dto.productoSolicitadoID() == null || dto.productoSolicitadoID().isBlank()
+        || dto.descripcion() == null || dto.descripcion().isBlank()
+        || dto.cantidadObjetivo() == null || dto.cantidadObjetivo() <= 0
+        || dto.nivelDeUrgencia() == null || dto.nivelDeUrgencia() < 1 || dto.nivelDeUrgencia() > 10
+        || dto.tipo() == null) throw new IllegalArgumentException("Datos de necesidad inválidos");
+  }
+
   public List<DonadorDTO> listarDonadores() {
       List<DonadorDTO> dtos = new ArrayList<>();
       
@@ -403,6 +437,20 @@ public class Fachada implements FachadaDonadoresYEntidades {
           dtos.add(dataMapper.toEntidadDTO(e));
       }
       return dtos;
+  }
+
+  public List<NecesidadMaterialDTO> listarNecesidades() {
+    return necesidadMaterialRepository.findAll().stream()
+        .peek(n -> n.actualizarPeriodo(java.time.LocalDate.now())).map(dataMapper::toNecesidadDTO).toList();
+  }
+
+  public java.util.Map<String, Object> periodoNecesidad(String id) {
+    NecesidadMaterial necesidad = necesidadMaterialRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Necesidad inexistente"));
+    necesidad.actualizarPeriodo(java.time.LocalDate.now());
+    java.util.Map<String, Object> datos = new java.util.LinkedHashMap<>();
+    datos.put("periodo", necesidad.getPeriodo());
+    datos.put("inicio", necesidad.getInicioPeriodo());
+    return datos;
   }
 
 }

@@ -73,6 +73,8 @@ public class Donador {
     return true;
   }
   public void cambiarEstado(EstadoDonadorEnum nuevoEstado) {
+    if (nuevoEstado == null) throw new IllegalArgumentException("Estado requerido");
+    if (this.estado != nuevoEstado) this.historialEstados.add(nuevoEstado);
     this.estado = nuevoEstado;
   }
 
