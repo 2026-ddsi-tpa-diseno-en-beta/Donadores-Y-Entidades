@@ -171,7 +171,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
     }
 
     metrics.necesidadRegistrada();
-    org.slf4j.LoggerFactory.getLogger(Fachada.class).info(
+    ar.edu.utn.dds.k3003.observability.DomainEvents.info(org.slf4j.LoggerFactory.getLogger(Fachada.class),
         "necesidad.registrada id={} tipo={} objetivo={} reservada={}",
         necesidadMaterial.getId(), necesidadDTO.tipo(), necesidadDTO.cantidadObjetivo(), cantidadAAsignar);
     return dataMapper.toNecesidadDTO(necesidadMaterial);
@@ -233,8 +233,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
   public DonadorDTO modificarEstado(String donadorID, EstadoDonadorEnum nuevoEstado) {
     if (donadorID == null || nuevoEstado == null) throw new RuntimeException();
     Donador donador = donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
+    EstadoDonadorEnum estadoAnterior = donador.getEstado();
     donador.cambiarEstado(nuevoEstado);
-    if (nuevoEstado == EstadoDonadorEnum.BANEADO) {
+    if (nuevoEstado == EstadoDonadorEnum.BANEADO && estadoAnterior != nuevoEstado) {
       metrics.donadorBaneado();
     }
     return dataMapper.toDonadorDTO(donadoresRepository.save(donador));
@@ -314,7 +315,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
           
           entidadesRepository.save(entidadBenefica);
           metrics.unidadesEntregadas(cantidadASatisfacer);
-          org.slf4j.LoggerFactory.getLogger(Fachada.class).info(
+          ar.edu.utn.dds.k3003.observability.DomainEvents.info(org.slf4j.LoggerFactory.getLogger(Fachada.class),
               "necesidad.entrega_registrada id={} cantidad={}", necesidadID, cantidadASatisfacer);
           
           return dataMapper.toNecesidadDTO(necesidadMaterial);
