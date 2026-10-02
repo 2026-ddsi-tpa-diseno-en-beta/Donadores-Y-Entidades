@@ -48,9 +48,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
         metrics.error();
-        String errorMessage = (ex.getMessage() != null) ? ex.getMessage() : "Error inesperado: " + ex.getClass().getSimpleName();
 
-        // Imprimimos el stack trace en la consola de IntelliJ para que puedas ver el error real
         org.slf4j.LoggerFactory.getLogger(ApiExceptionHandler.class).error("operacion.error ruta={}", request.getRequestURI(), ex);
 
         return ResponseEntity
@@ -61,5 +59,14 @@ public class ApiExceptionHandler {
                         "Error interno del servidor",
                         request.getRequestURI()
                 ));
+    }
+
+    @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
+        org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+        org.springframework.web.bind.MissingServletRequestParameterException.class})
+    public ResponseEntity<ErrorResponse> handleMalformed(Exception ex, HttpServletRequest request) {
+        metrics.error();
+        return ResponseEntity.badRequest().body(new ErrorResponse(LocalDateTime.now(), "INVALID_REQUEST",
+            "Datos o parámetros inválidos", request.getRequestURI()));
     }
 }
