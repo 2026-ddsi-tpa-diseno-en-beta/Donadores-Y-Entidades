@@ -4,7 +4,7 @@ Requiere Java 21 y Maven. Validación: `mvn package`. En Logística `verify` tam
 
 Una reserva desde stock no incrementa la cantidad entregada. Las necesidades recurrentes se renuevan por semana o mes. Los errores de integración se propagan: no se informa un alta exitosa si falló la reserva.
 
-Configurar las URLs de integración definidas en application.properties. En producción usar variables de entorno para conexión, usuario y contraseña de PostgreSQL y para las integraciones. No reemplazar application.properties de producción con las configuraciones H2 de prueba.
+Configurar las URLs de integración definidas en application.properties. La conexión, usuario y contraseña de PostgreSQL conservan los valores anteriores como defaults para compatibilidad con el despliegue existente; las variables SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME y SPRING_DATASOURCE_PASSWORD permiten reemplazarlos. Para las integraciones usar las URLs del entorno que se presenta. No reemplazar application.properties de producción con las configuraciones H2 de prueba.
 
 Swagger: `/swagger-ui/index.html`; contrato: `/v3/api-docs`; salud: `/actuator/health`; métricas: `/actuator/prometheus`. Los cuatro componentes propagan `X-Trace-Id`. Para logs centralizados configurar `BETTERSTACK_SOURCE_TOKEN` y `BETTERSTACK_INGEST_URL`; verificar la recepción en la cuenta del equipo.
 
