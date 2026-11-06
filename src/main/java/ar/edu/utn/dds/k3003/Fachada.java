@@ -7,79 +7,69 @@ import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
+import ar.edu.utn.dds.k3003.messaging.ReadModelEventPublisher;
+import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
 import ar.edu.utn.dds.k3003.model.*;
 import ar.edu.utn.dds.k3003.repositories.*;
 import java.util.*;
-import ar.edu.utn.dds.k3003.messaging.ReadModelEventPublisher;
-
-import ar.edu.utn.dds.k3003.catedra.dtos.logistica.AsignacionDTO;
-
-
-
 import java.util.stream.Collectors;
-
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import jakarta.validation.Valid;
-import ar.edu.utn.dds.k3003.metrics.DonadorMetricas;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 
 @Service
 @Transactional
 public class Fachada implements FachadaDonadoresYEntidades {
 
-
-  @Autowired
-  private DonadoresRepository donadoresRepository;
+  @Autowired private DonadoresRepository donadoresRepository;
   private EntidadesRepository entidadesRepository;
   private NecesidadMaterialRepository necesidadMaterialRepository;
 
   private DonadoresYEntidadesDataMapper dataMapper = new DonadoresYEntidadesDataMapper();
-  @Autowired
-  private FachadaIncentivos fachadaIncentivos;
-  @Autowired
-  private FachadaDonaciones fachadaDonaciones;
-  @Autowired
-  private FachadaLogistica fachadaLogistica;
+  @Autowired private FachadaIncentivos fachadaIncentivos;
+  @Autowired private FachadaDonaciones fachadaDonaciones;
+  @Autowired private FachadaLogistica fachadaLogistica;
   private int idCounter = 1;
 
   @Autowired(required = false)
   private ReadModelEventPublisher readModelEventPublisher;
 
+  @Autowired(required = false)
+  private EntregasRecibidasRepository entregasRecibidas;
+
   @Autowired
-  public Fachada(DonadoresRepository donadoresRepository,
-                 EntidadesRepository entidadesRepository,
-                 NecesidadMaterialRepository necesidadMaterialRepository) {
+  public Fachada(
+      DonadoresRepository donadoresRepository,
+      EntidadesRepository entidadesRepository,
+      NecesidadMaterialRepository necesidadMaterialRepository) {
     this.donadoresRepository = donadoresRepository;
     this.entidadesRepository = entidadesRepository;
     this.necesidadMaterialRepository = necesidadMaterialRepository;
   }
 
-  @Autowired
-  private DonadorMetricas metrics;
-  public Fachada() {
+  @Autowired private DonadorMetricas metrics;
+
+  public Fachada() {}
+
+  public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) {
+    this.fachadaDonaciones = fachadaDonaciones;
   }
 
+  public void setFachadaLogistica(FachadaLogistica fachadaLogistica) {
+    this.fachadaLogistica = fachadaLogistica;
+  }
 
-  public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) { this.fachadaDonaciones = fachadaDonaciones;}
-  public void setFachadaLogistica(FachadaLogistica fachadaLogistica) { this.fachadaLogistica = fachadaLogistica; }
   @Override
   public void setFachadaIncentivos(FachadaIncentivos fachadaIncentivos) {
     this.fachadaIncentivos = fachadaIncentivos;
   }
 
-
-
   @Override
-  public DonadorDTO agregarDonador(@Valid @RequestBody DonadorDTO donadorDTO) {
-    if (donadorDTO == null) throw new RuntimeException();
-    //genero id si no se le asignó
-    String id = (donadorDTO.id() == null || donadorDTO.id().isBlank())
+  public DonadorDTO agregarDonador(DonadorDTO donadorDTO) {
+    validarDonador(donadorDTO);
+    // genero id si no se le asignó
+    String id =
+        (donadorDTO.id() == null || donadorDTO.id().isBlank())
             ? java.util.UUID.randomUUID().toString()
             : donadorDTO.id();
     if (donadoresRepository.findById(id).isPresent()) {
@@ -99,16 +89,19 @@ public class Fachada implements FachadaDonadoresYEntidades {
 
   @Override
   public DonadorDTO buscarDonadorPorID(String donadorID) {
-    return donadoresRepository.findById(donadorID)
-            .map(dataMapper::toDonadorDTO)
-            .orElseThrow(() -> new NoSuchElementException("Donador no encontrado con id: " + donadorID));
+    return donadoresRepository
+        .findById(donadorID)
+        .map(dataMapper::toDonadorDTO)
+        .orElseThrow(
+            () -> new NoSuchElementException("Donador no encontrado con id: " + donadorID));
   }
 
   @Override
   public EntidadBeneficaDTO agregarEntidad(EntidadBeneficaDTO entidadDTO) {
-    if (entidadDTO == null) throw new RuntimeException();
-    //genero id
-    String id = (entidadDTO.id() == null || entidadDTO.id().isBlank())
+    validarEntidad(entidadDTO);
+    // genero id
+    String id =
+        (entidadDTO.id() == null || entidadDTO.id().isBlank())
             ? java.util.UUID.randomUUID().toString()
             : entidadDTO.id();
     if (entidadesRepository.findById(id).isPresent()) {
@@ -124,9 +117,10 @@ public class Fachada implements FachadaDonadoresYEntidades {
 
   @Override
   public EntidadBeneficaDTO buscarEntidadPorID(String entidadID) {
-    return entidadesRepository.findById(entidadID)
-            .map(dataMapper::toEntidadDTO)
-            .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada"));
+    return entidadesRepository
+        .findById(entidadID)
+        .map(dataMapper::toEntidadDTO)
+        .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada"));
   }
 
   @Override
@@ -135,8 +129,10 @@ public class Fachada implements FachadaDonadoresYEntidades {
     return registrarNecesidad(necesidadDTO, PeriodoNecesidad.SEMANAL);
   }
 
-  public NecesidadMaterialDTO registrarNecesidad(NecesidadMaterialDTO necesidadDTO, PeriodoNecesidad periodo) {
-    if (necesidadDTO == null || necesidadDTO.id() != null) throw new IllegalArgumentException("Necesidad inválida");
+  public NecesidadMaterialDTO registrarNecesidad(
+      NecesidadMaterialDTO necesidadDTO, PeriodoNecesidad periodo) {
+    if (necesidadDTO == null || necesidadDTO.id() != null)
+      throw new IllegalArgumentException("Necesidad inválida");
     validarNecesidad(necesidadDTO);
     if (fachadaDonaciones != null) {
       try {
@@ -146,7 +142,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
       }
     }
 
-    EntidadBenefica entidadBenefica = entidadesRepository.findById(necesidadDTO.entidadID())
+    EntidadBenefica entidadBenefica =
+        entidadesRepository
+            .findById(necesidadDTO.entidadID())
             .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada"));
 
     int cantidadAAsignar = 0;
@@ -160,7 +158,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
 
     NecesidadMaterial necesidadMaterial = dataMapper.toNecesidad(necesidadDTO);
     necesidadMaterial.setPeriodo(periodo);
-    necesidadMaterial.actualizarPeriodo(java.time.LocalDate.now());
+    actualizarPeriodoPublicando(necesidadMaterial);
     necesidadMaterial.setId(java.util.UUID.randomUUID().toString());
     // La cantidad recibida se actualiza al entregar, no al reservar stock.
     necesidadMaterial.setCantidadAsignada(0);
@@ -168,58 +166,89 @@ public class Fachada implements FachadaDonadoresYEntidades {
     entidadBenefica.agregarNecesidad(necesidadMaterial);
     entidadesRepository.saveAndFlush(entidadBenefica);
 
-    if (necesidadDTO.tipo() == TipoNecesidadMaterialEnum.RECURRENTE && cantidadAAsignar < necesidadDTO.cantidadObjetivo()) cantidadAAsignar = 0;
+    if (necesidadDTO.tipo() == TipoNecesidadMaterialEnum.RECURRENTE
+        && cantidadAAsignar < necesidadDTO.cantidadObjetivo()) cantidadAAsignar = 0;
     if (fachadaLogistica != null && cantidadAAsignar > 0) {
       fachadaLogistica.asignarDesdeStock(
-              necesidadMaterial.getId(),
-              necesidadDTO.productoSolicitadoID(),
-              cantidadAAsignar
-      );
+          necesidadMaterial.getId(), necesidadDTO.productoSolicitadoID(), cantidadAAsignar);
     }
 
-    publicarEvento("necesidad", necesidadMaterial.getId(), "UPSERT", snapshotNecesidad(necesidadMaterial));
+    publicarEvento(
+        "necesidad", necesidadMaterial.getId(), "UPSERT", snapshotNecesidad(necesidadMaterial));
     publicarEvento("entidad", entidadBenefica.getId(), "UPSERT", snapshotEntidad(entidadBenefica));
     metrics.necesidadRegistrada();
-    ar.edu.utn.dds.k3003.observability.DomainEvents.info(org.slf4j.LoggerFactory.getLogger(Fachada.class),
-            "necesidad.registrada id={} tipo={} objetivo={} reservada={}",
-            necesidadMaterial.getId(), necesidadDTO.tipo(), necesidadDTO.cantidadObjetivo(), cantidadAAsignar);
+    ar.edu.utn.dds.k3003.observability.DomainEvents.info(
+        org.slf4j.LoggerFactory.getLogger(Fachada.class),
+        "necesidad.registrada id={} tipo={} objetivo={} reservada={}",
+        necesidadMaterial.getId(),
+        necesidadDTO.tipo(),
+        necesidadDTO.cantidadObjetivo(),
+        cantidadAAsignar);
     return dataMapper.toNecesidadDTO(necesidadMaterial);
-
-
   }
 
   @Override
   public QuejaDTO agregarQueja(QuejaDTO quejaDTO) {
-    if (quejaDTO == null || quejaDTO.id() != null) throw new RuntimeException();
+    if (quejaDTO == null
+        || quejaDTO.id() != null
+        || quejaDTO.donadorID() == null
+        || quejaDTO.donadorID().isBlank()
+        || quejaDTO.donacionID() == null
+        || quejaDTO.donacionID().isBlank()
+        || quejaDTO.descripcion() == null
+        || quejaDTO.descripcion().isBlank()
+        || quejaDTO.fecha() == null)
+      throw new IllegalArgumentException(
+          "Donador, donación, descripción y fecha de queja requeridos");
 
-    Donador donador = donadoresRepository.findById(quejaDTO.donadorID())
+    Donador donador =
+        donadoresRepository
+            .findByIdForUpdate(quejaDTO.donadorID())
             .orElseThrow(() -> new DonadorNoEncontradoException("Donador no encontrado"));
 
-    Queja queja = new Queja(
+    var existing =
+        donador.getListaDeQuejas().stream()
+            .filter(q -> Objects.equals(q.getDonacionID(), quejaDTO.donacionID()))
+            .findFirst();
+    if (existing.isPresent()) return dataMapper.toQuejaDTO(existing.get());
+    if (fachadaDonaciones == null)
+      throw new IllegalStateException("Donaciones no está configurado");
+    var donation = fachadaDonaciones.buscarDonacionPorID(quejaDTO.donacionID());
+    if (donation == null) throw new NoSuchElementException("Donación inexistente");
+    if (!Objects.equals(donation.donadorID(), quejaDTO.donadorID()))
+      throw new IllegalArgumentException("La donación no pertenece al donador indicado");
+    if (donation.estado()
+        != ar.edu.utn.dds.k3003.catedra.dtos.donaciones.EstadoDonacionEnum.ACEPTADA)
+      throw new IllegalArgumentException("Solo se puede reclamar una donación entregada");
+
+    Queja queja =
+        new Queja(
             java.util.UUID.randomUUID().toString(),
             quejaDTO.donadorID(),
             quejaDTO.donacionID(),
             quejaDTO.descripcion(),
-            quejaDTO.fecha()
-    );
+            quejaDTO.fecha());
     donador.registrarQueja(queja);
-
 
     donadoresRepository.save(donador);
     publicarEvento("queja", queja.getId(), "UPSERT", snapshotQueja(queja));
     publicarEvento("donador", donador.getId(), "UPSERT", snapshotDonador(donador));
     metrics.quejaRegistrada();
-    if (donador.getEstado() == EstadoDonadorEnum.BANEADO && donador.getListaDeQuejas().size() == 10) metrics.donadorBaneado();
+    if (donador.getEstado() == EstadoDonadorEnum.BANEADO && donador.getListaDeQuejas().size() == 10)
+      metrics.donadorBaneado();
 
     return dataMapper.toQuejaDTO(queja);
-
   }
 
   @Override
   public List<QuejaDTO> obtenerQuejasDe(String donadorID) {
-    Donador donador = donadoresRepository.findById(donadorID)
+    Donador donador =
+        donadoresRepository
+            .findById(donadorID)
             .orElseThrow(() -> new NoSuchElementException("Donador inexistente"));
-    return donador.getListaDeQuejas().stream().map(dataMapper::toQuejaDTO).collect(Collectors.toList());
+    return donador.getListaDeQuejas().stream()
+        .map(dataMapper::toQuejaDTO)
+        .collect(Collectors.toList());
   }
 
   public List<QuejaDTO> obtenerTodasLasQuejas() {
@@ -227,23 +256,25 @@ public class Fachada implements FachadaDonadoresYEntidades {
     List<Donador> todosLosDonadores = donadoresRepository.findAll();
 
     return todosLosDonadores.stream()
-            .flatMap(donador -> donador.getListaDeQuejas().stream())
-            .map(dataMapper::toQuejaDTO)
-            .collect(Collectors.toList());
+        .flatMap(donador -> donador.getListaDeQuejas().stream())
+        .map(dataMapper::toQuejaDTO)
+        .collect(Collectors.toList());
   }
 
   @Override
   public Boolean puedeDonar(String donadorID) {
     if (donadorID == null) throw new IllegalArgumentException("ID no puede ser nulo");
-    return donadoresRepository.findById(donadorID)
-            .map(Donador::puedeHacerDonacion)
-            .orElseThrow(() -> new NoSuchElementException("ID no encontrado: " + donadorID));
+    return donadoresRepository
+        .findById(donadorID)
+        .map(Donador::puedeHacerDonacion)
+        .orElseThrow(() -> new NoSuchElementException("ID no encontrado: " + donadorID));
   }
 
   @Override
   public DonadorDTO modificarEstado(String donadorID, EstadoDonadorEnum nuevoEstado) {
     if (donadorID == null || nuevoEstado == null) throw new RuntimeException();
-    Donador donador = donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
+    Donador donador =
+        donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
     EstadoDonadorEnum estadoAnterior = donador.getEstado();
     donador.cambiarEstado(nuevoEstado);
     if (nuevoEstado == EstadoDonadorEnum.BANEADO && estadoAnterior != nuevoEstado) {
@@ -258,9 +289,10 @@ public class Fachada implements FachadaDonadoresYEntidades {
     if (donadorID == null || donadorDTO == null) {
       throw new IllegalArgumentException("ID o DTO de donador inválidos");
     }
-    Donador donador = donadoresRepository.findById(donadorID)
+    Donador donador =
+        donadoresRepository
+            .findById(donadorID)
             .orElseThrow(() -> new NoSuchElementException("Donador no encontrado: " + donadorID));
-
 
     if (donadorDTO.nombre() != null) {
       donador.setNombre(donadorDTO.nombre());
@@ -281,6 +313,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
       donador.setNroDocumento(donadorDTO.nroDocumento());
     }
 
+    validarDonador(dataMapper.toDonadorDTO(donador));
     donadoresRepository.save(donador);
     publicarEvento("donador", donador.getId(), "UPSERT", snapshotDonador(donador));
     return dataMapper.toDonadorDTO(donador);
@@ -289,7 +322,8 @@ public class Fachada implements FachadaDonadoresYEntidades {
   @Override
   public DonadorDTO modifcarCategoria(String donadorID, String nuevaCategoria) {
     if (donadorID == null || nuevaCategoria == null) throw new RuntimeException();
-    Donador donador = donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
+    Donador donador =
+        donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
     CategoriaDonadorEnum.valueOf(nuevaCategoria);
     donador.cambiarCategoria(nuevaCategoria);
     donadoresRepository.save(donador);
@@ -300,57 +334,89 @@ public class Fachada implements FachadaDonadoresYEntidades {
   @Override
   public List<NecesidadMaterialDTO> obtenerNecesidadesInsatisfechasDe(String productoID) {
     List<NecesidadMaterialDTO> necesidadesInsatisfechas = new ArrayList<>();
-    entidadesRepository.findAll().forEach(entidad -> {
-      entidad.getNecesidades().stream()
-              .peek(necesidad -> necesidad.actualizarPeriodo(java.time.LocalDate.now()))
-              .filter(necesidad -> productoID.equals(necesidad.getProductoSolicitadoID())
-                      && necesidad.getCantidadAsignada() < necesidad.getCantidadObjetivo())
-              .map(dataMapper::toNecesidadDTO)
-              .forEach(necesidadesInsatisfechas::add);
-    });
+    entidadesRepository
+        .findAll()
+        .forEach(
+            entidad -> {
+              entidad.getNecesidades().stream()
+                  .peek(necesidad -> actualizarPeriodoPublicando(necesidad))
+                  .filter(
+                      necesidad ->
+                          productoID.equals(necesidad.getProductoSolicitadoID())
+                              && necesidad.getCantidadAsignada() < necesidad.getCantidadObjetivo())
+                  .map(dataMapper::toNecesidadDTO)
+                  .forEach(necesidadesInsatisfechas::add);
+            });
     return necesidadesInsatisfechas;
   }
 
   @Override
   public NecesidadMaterialDTO satisfacerNecesidad(String necesidadID, Integer cantidadASatisfacer) {
-    if (necesidadID == null || cantidadASatisfacer == null || cantidadASatisfacer <= 0) throw new RuntimeException();
+    return satisfacerNecesidad(necesidadID, cantidadASatisfacer, null);
+  }
 
-    for (EntidadBenefica entidadBenefica : entidadesRepository.findAll()) {
-      for (NecesidadMaterial necesidadMaterial : entidadBenefica.getNecesidades()) {
-        if (necesidadID.equals(necesidadMaterial.getId())) {
-          necesidadMaterial.actualizarPeriodo(java.time.LocalDate.now());
-
-          if (necesidadMaterial.getTipo() == TipoNecesidadMaterialEnum.RECURRENTE) {
-            if (cantidadASatisfacer < necesidadMaterial.getCantidadObjetivo() || necesidadMaterial.getCantidadAsignada() > 0) {
-              throw new RuntimeException("No se aceptan donaciones parciales para necesidades recurrentes");
-            }
-          }
-
-          necesidadMaterial.satisfacer(cantidadASatisfacer);
-
-          entidadesRepository.save(entidadBenefica);
-          publicarEvento("necesidad", necesidadMaterial.getId(), "UPSERT", snapshotNecesidad(necesidadMaterial));
-          publicarEvento("entidad", entidadBenefica.getId(), "UPSERT", snapshotEntidad(entidadBenefica));
-          metrics.unidadesEntregadas(cantidadASatisfacer);
-          ar.edu.utn.dds.k3003.observability.DomainEvents.info(org.slf4j.LoggerFactory.getLogger(Fachada.class),
-                  "necesidad.entrega_registrada id={} cantidad={}", necesidadID, cantidadASatisfacer);
-
-          return dataMapper.toNecesidadDTO(necesidadMaterial);
-        }
+  /** The receipt and received units commit together; retries cannot apply the delivery twice. */
+  public NecesidadMaterialDTO satisfacerNecesidad(
+      String necesidadID, Integer cantidad, String entregaID) {
+    if (necesidadID == null
+        || cantidad == null
+        || cantidad <= 0
+        || entregaID != null && (entregaID.isBlank() || entregaID.length() > 200))
+      throw new IllegalArgumentException(
+          "Necesidad, cantidad positiva e identificador de entrega válidos requeridos");
+    NecesidadMaterial necesidad =
+        necesidadMaterialRepository
+            .findByIdForUpdate(necesidadID)
+            .orElseThrow(
+                () -> new NoSuchElementException("Necesidad no encontrada con id: " + necesidadID));
+    if (entregaID != null) {
+      if (entregasRecibidas == null)
+        throw new IllegalStateException("Repositorio de entregas no configurado");
+      var previous = entregasRecibidas.findById(entregaID);
+      if (previous.isPresent()) {
+        if (!previous.get().coincide(necesidadID, cantidad))
+          throw new ar.edu.utn.dds.k3003.exceptions.ConflictoException(
+              "El ID de entrega ya corresponde a otros datos");
+        return dataMapper.toNecesidadDTO(necesidad);
       }
     }
-    throw new NoSuchElementException("Necesidad no encontrada con id: " + necesidadID);
+    actualizarPeriodoPublicando(necesidad);
+    if (necesidad.getTipo() == TipoNecesidadMaterialEnum.RECURRENTE
+        && (cantidad < necesidad.getCantidadObjetivo() || necesidad.getCantidadAsignada() > 0))
+      throw new ar.edu.utn.dds.k3003.exceptions.ConflictoException(
+          "La recurrente requiere una única entrega completa por período");
+    necesidad.satisfacer(cantidad);
+    necesidadMaterialRepository.save(necesidad);
+    if (entregaID != null)
+      entregasRecibidas.save(new EntregaRecibida(entregaID, necesidadID, cantidad));
+    publicarEvento("necesidad", necesidad.getId(), "UPSERT", snapshotNecesidad(necesidad));
+    var entidad = necesidad.getEntidadBenefica();
+    if (entidad != null)
+      publicarEvento("entidad", entidad.getId(), "UPSERT", snapshotEntidad(entidad));
+    metrics.unidadesEntregadas(cantidad);
+    ar.edu.utn.dds.k3003.observability.DomainEvents.info(
+        org.slf4j.LoggerFactory.getLogger(Fachada.class),
+        "necesidad.entrega_registrada id={} cantidad={} entrega={}",
+        necesidadID,
+        cantidad,
+        entregaID);
+    return dataMapper.toNecesidadDTO(necesidad);
   }
 
   @Override
   public DonadorStatsDTO estadisticasDonador(String donadorID) {
-    Donador donador = donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
+    Donador donador =
+        donadoresRepository.findById(donadorID).orElseThrow(() -> new NoSuchElementException());
 
-    List<String> insigniasIds = (fachadaIncentivos != null) ?
-            fachadaIncentivos.getInsigniasDeDonador(donadorID).stream().map(InsigniaDTO::id).collect(Collectors.toList())
+    List<String> insigniasIds =
+        (fachadaIncentivos != null)
+            ? fachadaIncentivos.getInsigniasDeDonador(donadorID).stream()
+                .map(InsigniaDTO::id)
+                .collect(Collectors.toList())
             : new ArrayList<>();
 
-    MisionDTO misionEnCurso = (fachadaIncentivos != null) ? fachadaIncentivos.getMisionEnCursoDeDonador(donadorID) : null;
+    MisionDTO misionEnCurso =
+        (fachadaIncentivos != null) ? fachadaIncentivos.getMisionEnCursoDeDonador(donadorID) : null;
     String misionID;
     if (misionEnCurso != null) {
       misionID = misionEnCurso.id();
@@ -358,17 +424,27 @@ public class Fachada implements FachadaDonadoresYEntidades {
       misionID = null;
     }
 
-    return new DonadorStatsDTO(donador.getId(), donador.getNombre(), donador.getApellido(), donador.getEdad(),
-            donador.getEstado(), donador.getCategoria(), misionID, insigniasIds);
+    return new DonadorStatsDTO(
+        donador.getId(),
+        donador.getNombre(),
+        donador.getApellido(),
+        donador.getEdad(),
+        donador.getEstado(),
+        donador.getCategoria(),
+        misionID,
+        insigniasIds);
   }
-
 
   @Transactional
   public EntidadBeneficaDTO modificarEntidad(String entidadID, EntidadBeneficaDTO entidadDTO) {
-    if (entidadID == null || entidadDTO == null) throw new IllegalArgumentException("Datos inválidos");
+    if (entidadID == null || entidadDTO == null)
+      throw new IllegalArgumentException("Datos inválidos");
 
-    EntidadBenefica entidad = entidadesRepository.findById(entidadID)
-            .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada con ID: " + entidadID));
+    EntidadBenefica entidad =
+        entidadesRepository
+            .findById(entidadID)
+            .orElseThrow(
+                () -> new NoSuchElementException("Entidad no encontrada con ID: " + entidadID));
 
     if (entidadDTO.razonSocial() != null) {
       entidad.setRazonSocial(entidadDTO.razonSocial());
@@ -383,6 +459,7 @@ public class Fachada implements FachadaDonadoresYEntidades {
       entidad.setCorreo(entidadDTO.correo());
     }
 
+    validarEntidad(dataMapper.toEntidadDTO(entidad));
     entidadesRepository.save(entidad);
     publicarEvento("entidad", entidad.getId(), "UPSERT", snapshotEntidad(entidad));
     return dataMapper.toEntidadDTO(entidad);
@@ -391,14 +468,22 @@ public class Fachada implements FachadaDonadoresYEntidades {
   public NecesidadMaterialDTO buscarNecesidadPorID(String necesidadID) {
     if (necesidadID == null) throw new IllegalArgumentException("ID inválido");
 
-    return necesidadMaterialRepository.findById(necesidadID)
-            .map(n -> { n.actualizarPeriodo(java.time.LocalDate.now()); return dataMapper.toNecesidadDTO(n); })
-            .orElseThrow(() -> new NoSuchElementException("Necesidad no encontrada con ID: " + necesidadID));
+    return necesidadMaterialRepository
+        .findById(necesidadID)
+        .map(
+            n -> {
+              actualizarPeriodoPublicando(n);
+              return dataMapper.toNecesidadDTO(n);
+            })
+        .orElseThrow(
+            () -> new NoSuchElementException("Necesidad no encontrada con ID: " + necesidadID));
   }
 
   @Transactional
-  public NecesidadMaterialDTO modificarNecesidad(String necesidadID, NecesidadMaterialDTO necesidadDTO) {
-    if (necesidadID == null || necesidadDTO == null) throw new IllegalArgumentException("Datos inválidos");
+  public NecesidadMaterialDTO modificarNecesidad(
+      String necesidadID, NecesidadMaterialDTO necesidadDTO) {
+    if (necesidadID == null || necesidadDTO == null)
+      throw new IllegalArgumentException("Datos inválidos");
 
     for (EntidadBenefica entidad : entidadesRepository.findAll()) {
       for (NecesidadMaterial necesidad : entidad.getNecesidades()) {
@@ -406,12 +491,15 @@ public class Fachada implements FachadaDonadoresYEntidades {
 
           validarNecesidad(necesidadDTO);
           if (!Objects.equals(necesidad.getEntidadID(), necesidadDTO.entidadID())
-                  || !Objects.equals(necesidad.getProductoSolicitadoID(), necesidadDTO.productoSolicitadoID())
-                  || necesidad.getTipo() != necesidadDTO.tipo()) {
-            throw new IllegalArgumentException("Para cambiar entidad, producto o tipo, cree otra necesidad");
+              || !Objects.equals(
+                  necesidad.getProductoSolicitadoID(), necesidadDTO.productoSolicitadoID())
+              || necesidad.getTipo() != necesidadDTO.tipo()) {
+            throw new IllegalArgumentException(
+                "Para cambiar entidad, producto o tipo, cree otra necesidad");
           }
           if (necesidadDTO.cantidadObjetivo() < necesidad.getCantidadAsignada()) {
-            throw new IllegalArgumentException("El objetivo no puede ser menor que la cantidad ya recibida");
+            throw new IllegalArgumentException(
+                "El objetivo no puede ser menor que la cantidad ya recibida");
           }
           necesidad.setDescripcion(necesidadDTO.descripcion());
           necesidad.setNivelDeUrgencia(necesidadDTO.nivelDeUrgencia());
@@ -434,36 +522,126 @@ public class Fachada implements FachadaDonadoresYEntidades {
     if (!necesidadMaterialRepository.existsById(necesidadID)) {
       throw new NoSuchElementException("Necesidad no encontrada con ID: " + necesidadID);
     }
-
+    verificarSinAsignacionesPendientes(Set.of(necesidadID));
     necesidadMaterialRepository.deleteById(necesidadID);
     publicarEvento("necesidad", necesidadID, "DELETE", Map.of());
   }
 
+  private void actualizarPeriodoPublicando(NecesidadMaterial necesidad) {
+    var before = necesidad.getInicioPeriodo();
+    necesidad.actualizarPeriodo(java.time.LocalDate.now());
+    if (necesidad.getId() != null
+        && !java.util.Objects.equals(before, necesidad.getInicioPeriodo()))
+      publicarEvento("necesidad", necesidad.getId(), "UPSERT", snapshotNecesidad(necesidad));
+  }
+
+  public void actualizarPeriodos() {
+    necesidadMaterialRepository.findAll().forEach(this::actualizarPeriodoPublicando);
+  }
+
+  public void eliminarDonador(String id) {
+    Donador d =
+        donadoresRepository
+            .findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Donador no encontrado"));
+    d.getListaDeQuejas().forEach(q -> publicarEvento("queja", q.getId(), "DELETE", Map.of()));
+    publicarEvento("donador", id, "DELETE", Map.of());
+    donadoresRepository.delete(d);
+  }
+
+  public void eliminarEntidad(String id) {
+    EntidadBenefica e =
+        entidadesRepository
+            .findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Entidad no encontrada"));
+    verificarSinAsignacionesPendientes(
+        e.getNecesidades().stream().map(NecesidadMaterial::getId).collect(Collectors.toSet()));
+    e.getNecesidades().forEach(n -> publicarEvento("necesidad", n.getId(), "DELETE", Map.of()));
+    publicarEvento("entidad", id, "DELETE", Map.of());
+    entidadesRepository.delete(e);
+  }
 
   @Transactional
   public void limpiarDatos() {
-    donadoresRepository.findAll().forEach(donador -> {
-      donador.getListaDeQuejas().forEach(queja ->
-              publicarEvento("queja", queja.getId(), "DELETE", Map.of()));
-      publicarEvento("donador", donador.getId(), "DELETE", Map.of());
-    });
-    entidadesRepository.findAll().forEach(entidad -> {
-      entidad.getNecesidades().forEach(necesidad ->
-              publicarEvento("necesidad", necesidad.getId(), "DELETE", Map.of()));
-      publicarEvento("entidad", entidad.getId(), "DELETE", Map.of());
-    });
+    if (entregasRecibidas != null) entregasRecibidas.deleteAll();
+    donadoresRepository
+        .findAll()
+        .forEach(
+            donador -> {
+              donador
+                  .getListaDeQuejas()
+                  .forEach(queja -> publicarEvento("queja", queja.getId(), "DELETE", Map.of()));
+              publicarEvento("donador", donador.getId(), "DELETE", Map.of());
+            });
+    entidadesRepository
+        .findAll()
+        .forEach(
+            entidad -> {
+              entidad
+                  .getNecesidades()
+                  .forEach(
+                      necesidad ->
+                          publicarEvento("necesidad", necesidad.getId(), "DELETE", Map.of()));
+              publicarEvento("entidad", entidad.getId(), "DELETE", Map.of());
+            });
     necesidadMaterialRepository.deleteAll();
     donadoresRepository.deleteAll();
     entidadesRepository.deleteAll();
   }
 
   private void validarNecesidad(NecesidadMaterialDTO dto) {
-    if (dto.entidadID() == null || dto.entidadID().isBlank()
-            || dto.productoSolicitadoID() == null || dto.productoSolicitadoID().isBlank()
-            || dto.descripcion() == null || dto.descripcion().isBlank()
-            || dto.cantidadObjetivo() == null || dto.cantidadObjetivo() <= 0
-            || dto.nivelDeUrgencia() == null || dto.nivelDeUrgencia() < 1 || dto.nivelDeUrgencia() > 10
-            || dto.tipo() == null) throw new IllegalArgumentException("Datos de necesidad inválidos");
+    if (dto.entidadID() == null
+        || dto.entidadID().isBlank()
+        || dto.productoSolicitadoID() == null
+        || dto.productoSolicitadoID().isBlank()
+        || dto.descripcion() == null
+        || dto.descripcion().isBlank()
+        || dto.cantidadObjetivo() == null
+        || dto.cantidadObjetivo() <= 0
+        || dto.nivelDeUrgencia() == null
+        || dto.nivelDeUrgencia() < 1
+        || dto.nivelDeUrgencia() > 10
+        || dto.tipo() == null) throw new IllegalArgumentException("Datos de necesidad inválidos");
+  }
+
+  private void verificarSinAsignacionesPendientes(Set<String> necesidades) {
+    if (necesidades.isEmpty()) return;
+    if (!(fachadaLogistica
+        instanceof ar.edu.utn.dds.k3003.clients.ConsultaAsignacionesPendientes consulta))
+      throw new IllegalStateException("No se puede verificar la logística antes de borrar");
+    if (consulta.tieneAsignacionesPendientes(necesidades))
+      throw new ar.edu.utn.dds.k3003.exceptions.ConflictoException(
+          "Hay asignaciones pendientes; complete las entregas antes de borrar");
+  }
+
+  private static void requerido(String value, String field) {
+    if (value == null || value.isBlank())
+      throw new IllegalArgumentException(field + " es obligatorio");
+  }
+
+  private static void correoValido(String value) {
+    requerido(value, "Email");
+    if (!value.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
+      throw new IllegalArgumentException("Email inválido");
+  }
+
+  private static void validarDonador(DonadorDTO dto) {
+    if (dto == null) throw new IllegalArgumentException("Donador requerido");
+    requerido(dto.nombre(), "Nombre");
+    requerido(dto.apellido(), "Apellido");
+    requerido(dto.nroDocumento(), "Documento");
+    requerido(dto.domicilio(), "Domicilio");
+    correoValido(dto.email());
+    if (dto.edad() == null || dto.edad() < 0)
+      throw new IllegalArgumentException("Edad no negativa requerida");
+  }
+
+  private static void validarEntidad(EntidadBeneficaDTO dto) {
+    if (dto == null) throw new IllegalArgumentException("Entidad requerida");
+    requerido(dto.razonSocial(), "Razón social");
+    requerido(dto.domicilio(), "Domicilio");
+    requerido(dto.telefono(), "Teléfono");
+    correoValido(dto.correo());
   }
 
   public List<DonadorDTO> listarDonadores() {
@@ -487,20 +665,39 @@ public class Fachada implements FachadaDonadoresYEntidades {
 
   public List<NecesidadMaterialDTO> listarNecesidades() {
     return necesidadMaterialRepository.findAll().stream()
-            .peek(n -> n.actualizarPeriodo(java.time.LocalDate.now())).map(dataMapper::toNecesidadDTO).toList();
+        .peek(n -> actualizarPeriodoPublicando(n))
+        .map(dataMapper::toNecesidadDTO)
+        .toList();
   }
 
   public java.util.Map<String, Object> periodoNecesidad(String id) {
-    NecesidadMaterial necesidad = necesidadMaterialRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Necesidad inexistente"));
-    necesidad.actualizarPeriodo(java.time.LocalDate.now());
+    NecesidadMaterial necesidad =
+        necesidadMaterialRepository
+            .findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Necesidad inexistente"));
+    actualizarPeriodoPublicando(necesidad);
     java.util.Map<String, Object> datos = new java.util.LinkedHashMap<>();
     datos.put("periodo", necesidad.getPeriodo());
     datos.put("inicio", necesidad.getInicioPeriodo());
     return datos;
   }
 
+  @org.springframework.transaction.annotation.Transactional
+  public void republicarModeloLectura() {
+
+    donadoresRepository
+        .findAll()
+        .forEach(d -> publicarEvento("donador", d.getId(), "UPSERT", snapshotDonador(d)));
+    entidadesRepository
+        .findAll()
+        .forEach(e -> publicarEvento("entidad", e.getId(), "UPSERT", snapshotEntidad(e)));
+    necesidadMaterialRepository
+        .findAll()
+        .forEach(n -> publicarEvento("necesidad", n.getId(), "UPSERT", snapshotNecesidad(n)));
+  }
+
   private void publicarEvento(
-          String tipo, String id, String operacion, Map<String, Object> payload) {
+      String tipo, String id, String operacion, Map<String, Object> payload) {
     if (readModelEventPublisher != null) {
       readModelEventPublisher.publicar(tipo, id, operacion, payload);
     }
@@ -515,8 +712,9 @@ public class Fachada implements FachadaDonadoresYEntidades {
     snapshot.put("categoria", donador.getCategoria());
     donador.registrarCategoriaInicial();
     snapshot.put("historialCategorias", List.copyOf(donador.getHistorialCategorias()));
-    snapshot.put("historialEstados", donador.getHistorialEstados().stream()
-            .map(estado -> estado.name()).toList());
+    snapshot.put(
+        "historialEstados",
+        donador.getHistorialEstados().stream().map(estado -> estado.name()).toList());
     snapshot.put("quejas", donador.getListaDeQuejas().stream().map(this::snapshotQueja).toList());
     snapshot.put("cantidadQuejas", donador.getListaDeQuejas().size());
     return snapshot;
@@ -556,5 +754,4 @@ public class Fachada implements FachadaDonadoresYEntidades {
     snapshot.put("fecha", queja.getFecha());
     return snapshot;
   }
-
 }
