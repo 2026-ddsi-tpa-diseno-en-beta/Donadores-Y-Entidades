@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
 @Component
 public class LogisticaRestClient implements FachadaLogistica {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = ar.edu.utn.dds.k3003.observability.HttpClients.restTemplate();
 
     @Value("${URL_LOGISTICA}")
     private String urlLogistica;
@@ -85,7 +85,7 @@ public class LogisticaRestClient implements FachadaLogistica {
         requestBody.put("productoId", productoID);
         requestBody.put("cantidad", cantidad);
 
-        try {
+        {
             AsignacionDTO[] respuesta = restTemplate.postForObject(url, requestBody, AsignacionDTO[].class);
 
             if (respuesta != null) {
@@ -94,9 +94,6 @@ public class LogisticaRestClient implements FachadaLogistica {
                 return new java.util.ArrayList<>();
             }
 
-        } catch (Exception e) {
-            System.err.println("Error al comunicarse con Logística para asignar stock: " + e.getMessage());
-            return new java.util.ArrayList<>();
         }
     }
 

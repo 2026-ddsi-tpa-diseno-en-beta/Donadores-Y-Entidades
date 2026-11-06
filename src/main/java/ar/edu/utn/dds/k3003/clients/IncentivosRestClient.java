@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
 @Component
 public class IncentivosRestClient implements FachadaIncentivos {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = ar.edu.utn.dds.k3003.observability.HttpClients.restTemplate();
 
     @Value("${URL_INCENTIVOS}")
     private String urlIncentivos;
@@ -37,8 +37,7 @@ public class IncentivosRestClient implements FachadaIncentivos {
         try {
             InsigniaDTO[] insignias = restTemplate.getForObject(url, InsigniaDTO[].class);
             return insignias != null ? Arrays.asList(insignias) : new ArrayList<>();
-        } catch (Exception e) {
-            System.out.println("Error al conectar con Incentivos: " + e.getMessage());
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
             return new ArrayList<>();
         }
     }
@@ -51,9 +50,6 @@ public class IncentivosRestClient implements FachadaIncentivos {
             return restTemplate.getForObject(url, MisionDTO.class);
 
         } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
-            return null;
-        } catch (Exception e) {
-            System.out.println("Error al conectar con Incentivos (Misión Actual): " + e.getMessage());
             return null;
         }
     }

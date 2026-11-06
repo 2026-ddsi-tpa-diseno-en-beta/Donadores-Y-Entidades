@@ -27,13 +27,14 @@ public class NecesidadController {
         this.metrics = metrics;
     }
     @PostMapping
-    public ResponseEntity<NecesidadMaterialDTO> registrar(@RequestBody NecesidadMaterialDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(fachada.registrarNecesidad(dto));
+    public ResponseEntity<NecesidadMaterialDTO> registrar(@RequestBody NecesidadMaterialDTO dto,
+        @RequestParam(defaultValue = "SEMANAL") ar.edu.utn.dds.k3003.model.PeriodoNecesidad periodo) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(fachada.registrarNecesidad(dto, periodo));
     }
 
     @GetMapping
-    public ResponseEntity<List<NecesidadMaterialDTO>> listarPorProducto(@RequestParam String productoSolicitadoID) {
-        return ResponseEntity.ok(fachada.obtenerNecesidadesInsatisfechasDe(productoSolicitadoID));
+    public ResponseEntity<List<NecesidadMaterialDTO>> listarPorProducto(@RequestParam(required = false) String productoSolicitadoID) {
+        return ResponseEntity.ok(productoSolicitadoID == null ? fachada.listarNecesidades() : fachada.obtenerNecesidadesInsatisfechasDe(productoSolicitadoID));
     }
 
     @PostMapping("/{necesidadID}/satisfaccion")
@@ -71,5 +72,10 @@ public class NecesidadController {
     public ResponseEntity<Void> borrar(@PathVariable String id) {
         fachada.borrarNecesidad(id);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}/periodo")
+    public ResponseEntity<java.util.Map<String,Object>> periodo(@PathVariable String id) {
+        return ResponseEntity.ok(fachada.periodoNecesidad(id));
     }
 }

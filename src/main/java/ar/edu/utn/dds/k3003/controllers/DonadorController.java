@@ -33,7 +33,6 @@ public class DonadorController {
     @PostMapping // POST /donadores (No modificable)
     public ResponseEntity<DonadorDTO> registrar(@RequestBody DonadorDTO dto) {
         DonadorDTO nuevoDonador = fachada.agregarDonador(dto);
-        metrics.donadorRegistrado();
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoDonador);
     }
 
@@ -59,7 +58,6 @@ public class DonadorController {
             dto.descripcion()
         );
         QuejaDTO resultado = fachada.agregarQueja(nuevaQueja);
-        metrics.quejaRegistrada();
         return ResponseEntity.status(HttpStatus.CREATED).body(resultado);
     }
 
@@ -95,7 +93,12 @@ public class DonadorController {
     public ResponseEntity<List<QuejaDTO>> listarTodasLasQuejas() {
         return ResponseEntity.ok(fachada.obtenerTodasLasQuejas());
     }
-    @DeleteMapping("/donadores/{id}")
+    @PutMapping("/{id}")
+    public ResponseEntity<DonadorDTO> modificar(@PathVariable String id, @RequestBody DonadorDTO dto) {
+        return ResponseEntity.ok(fachada.modificarDonador(id, dto));
+    }
+
+    @DeleteMapping({"/{id}", "/donadores/{id}"})
     public ResponseEntity<Void> eliminarDonador(@PathVariable String id) {
         Donador donador = donadoresRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Donador no encontrado"));

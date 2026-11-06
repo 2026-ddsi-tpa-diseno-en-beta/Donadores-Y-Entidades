@@ -14,6 +14,17 @@ import lombok.Setter;
 @DiscriminatorColumn(name = "tipo_necesidad", discriminatorType = DiscriminatorType.STRING)
 @NoArgsConstructor
 public class NecesidadMaterial {
+  @Enumerated(EnumType.STRING)
+  private PeriodoNecesidad periodo = PeriodoNecesidad.SEMANAL;
+  private java.time.LocalDate inicioPeriodo;
+
+  public void actualizarPeriodo(java.time.LocalDate fecha) {
+    if (tipo != TipoNecesidadMaterialEnum.RECURRENTE) return;
+    PeriodoNecesidad efectivo = periodo == null ? PeriodoNecesidad.SEMANAL : periodo;
+    java.time.LocalDate inicio = efectivo.inicio(fecha);
+    if (inicioPeriodo != null && !inicioPeriodo.equals(inicio)) cantidadAsignada = 0;
+    inicioPeriodo = inicio;
+  }
   @Id
   private String id;
 
@@ -60,6 +71,8 @@ public class NecesidadMaterial {
   }
 
   public void satisfacer(Integer cantidadASatisfacer) {
+    if (cantidadASatisfacer == null || cantidadASatisfacer <= 0) throw new IllegalArgumentException("Cantidad positiva requerida");
+    actualizarPeriodo(java.time.LocalDate.now());
     if (this.cantidadAsignada == null) {
       this.cantidadAsignada = 0;
     }
