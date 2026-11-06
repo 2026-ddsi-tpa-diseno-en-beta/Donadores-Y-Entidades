@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003.model;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.EstadoDonadorEnum;
 import jakarta.persistence.*;
+import java.util.Objects;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,14 @@ public class Donador {
 
   @Column
   private String categoria;
+
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(
+          name = "donador_historial_categorias",
+          joinColumns = @JoinColumn(name = "donador_id"))
+  @Column(name = "categoria", nullable = false)
+  @OrderColumn(name = "orden")
+  private List<String> historialCategorias = new ArrayList<>();
 
 
   @OneToMany(cascade = CascadeType.ALL)
@@ -88,4 +97,23 @@ public class Donador {
       cambiarEstado(EstadoDonadorEnum.SOSPECHOSO);
     }
   }
+  /** Registra la categoría inicial sin inventar cambios históricos. */
+  public void registrarCategoriaInicial() {
+    if (categoria != null && historialCategorias.isEmpty()) {
+      historialCategorias.add(categoria);
+    }
+  }
+
+  /** Cambia la categoría conservando la secuencia de categorías efectivamente asignadas. */
+  public void cambiarCategoria(String nuevaCategoria) {
+    if (nuevaCategoria == null || nuevaCategoria.isBlank()) {
+      throw new IllegalArgumentException("La categoría es obligatoria");
+    }
+    registrarCategoriaInicial();
+    if (!Objects.equals(categoria, nuevaCategoria)) {
+      categoria = nuevaCategoria;
+      historialCategorias.add(nuevaCategoria);
+    }
+  }
+
 }
